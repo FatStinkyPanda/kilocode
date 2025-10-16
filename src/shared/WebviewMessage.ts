@@ -300,6 +300,12 @@ export interface WebviewMessage {
 		| "idleEnableNotifications"
 		| "idleAutoPromptFolder"
 		| "idleShowStatusBar"
+		| "autoGitEnabled"
+		| "autoGitRepositoryUrl"
+		| "autoGitUserEmail"
+		| "autoGitCommitOnTaskComplete"
+		| "autoGitCreateBranchOnConflict"
+		| "autoGitSetup"
 	text?: string
 	editedMessageContent?: string
 	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "cloud"

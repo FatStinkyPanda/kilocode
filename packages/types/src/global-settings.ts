@@ -183,6 +183,13 @@ export const globalSettingsSchema = z.object({
 	idleAutoPromptFolder: z.string().optional(),
 	idleShowStatusBar: z.boolean().optional(),
 	// kilocode_change end
+	// kilocode_change start: Auto git commit/push settings
+	autoGitEnabled: z.boolean().optional(),
+	autoGitRepositoryUrl: z.string().optional(),
+	autoGitUserEmail: z.string().optional(),
+	autoGitCommitOnTaskComplete: z.boolean().optional(),
+	autoGitCreateBranchOnConflict: z.boolean().optional(),
+	// kilocode_change end
 })
 
 export type GlobalSettings = z.infer<typeof globalSettingsSchema>

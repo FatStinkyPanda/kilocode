@@ -107,6 +107,7 @@ import { getKilocodeDefaultModel } from "../../api/providers/kilocode/getKilocod
 import { getKiloCodeWrapperProperties } from "../../core/kilocode/wrapper"
 import { getKilocodeConfig, getWorkspaceProjectId, KilocodeConfig } from "../../utils/kilo-config-file" // kilocode_change
 import { IdleDetectionService } from "../../services/idle-detection/IdleDetectionService"
+import { AutoGitService } from "../../services/auto-git/AutoGitService"
 
 export type ClineProviderState = Awaited<ReturnType<ClineProvider["getState"]>>
 // kilocode_change end
@@ -165,6 +166,7 @@ export class ClineProvider
 	public readonly customModesManager: CustomModesManager
 	public idleDetectionService?: IdleDetectionService
 	private idleStatusBarItem?: vscode.StatusBarItem
+	public autoGitService?: AutoGitService
 
 	constructor(
 		readonly context: vscode.ExtensionContext,
@@ -472,6 +474,74 @@ export class ClineProvider
 				this.postMessageToWebview({ type: "idleDetectionStatus", isPaused: false })
 			})
 
+			// kilocode_change start: Initialize AutoGitService
+			const autoGitEnabled = config.get<boolean>("autoGit.enabled", false)
+			const autoGitRepositoryUrl = config.get<string>("autoGit.repositoryUrl", "")
+			const autoGitUserEmail = config.get<string>("autoGit.userEmail", "")
+			const autoGitCommitOnTaskComplete = config.get<boolean>("autoGit.commitOnTaskComplete", true)
+			const autoGitCreateBranchOnConflict = config.get<boolean>("autoGit.createBranchOnConflict", true)
+
+			this.autoGitService = AutoGitService.getInstance(
+				{
+					enabled: autoGitEnabled,
+					repositoryUrl: autoGitRepositoryUrl,
+					userEmail: autoGitUserEmail,
+					commitOnTaskComplete: autoGitCommitOnTaskComplete,
+					createBranchOnConflict: autoGitCreateBranchOnConflict,
+				},
+				this.outputChannel,
+				this.context,
+				this.currentWorkspacePath,
+			)
+
+			// Listen for setup required
+			this.autoGitService.on("setupRequired", async (workspacePath: string) => {
+				this.log("[AutoGit] Setup required, requesting configuration from user")
+				// Request setup through webview
+				await this.postMessageToWebview({
+					type: "autoGitSetupRequired",
+					workspacePath,
+				})
+			})
+
+			// Listen for commit success
+			this.autoGitService.on("commitSuccess", (commitHash: string, branch: string) => {
+				this.log(`[AutoGit] Commit successful: ${commitHash} on ${branch}`)
+			})
+
+			// Listen for push success
+			this.autoGitService.on("pushSuccess", (branch: string) => {
+				this.log(`[AutoGit] Push successful to ${branch}`)
+			})
+
+			// Listen for branch created
+			this.autoGitService.on("branchCreated", (branchName: string) => {
+				this.log(`[AutoGit] Created new branch: ${branchName}`)
+			})
+
+			// Set up configuration change listener for AutoGit
+			this.disposables.push(
+				vscode.workspace.onDidChangeConfiguration((e) => {
+					if (
+						e.affectsConfiguration(`${Package.name}.autoGit.enabled`) ||
+						e.affectsConfiguration(`${Package.name}.autoGit.repositoryUrl`) ||
+						e.affectsConfiguration(`${Package.name}.autoGit.userEmail`) ||
+						e.affectsConfiguration(`${Package.name}.autoGit.commitOnTaskComplete`) ||
+						e.affectsConfiguration(`${Package.name}.autoGit.createBranchOnConflict`)
+					) {
+						const config = vscode.workspace.getConfiguration(Package.name)
+						this.autoGitService?.updateConfig({
+							enabled: config.get<boolean>("autoGit.enabled", false),
+							repositoryUrl: config.get<string>("autoGit.repositoryUrl", ""),
+							userEmail: config.get<string>("autoGit.userEmail", ""),
+							commitOnTaskComplete: config.get<boolean>("autoGit.commitOnTaskComplete", true),
+							createBranchOnConflict: config.get<boolean>("autoGit.createBranchOnConflict", true),
+						})
+					}
+				}),
+			)
+			// kilocode_change end
+
 			// Set up configuration change listener
 			this.disposables.push(
 				vscode.workspace.onDidChangeConfiguration((e) => {
@@ -525,6 +595,11 @@ export class ClineProvider
 		if (this.idleDetectionService && workspacePath) {
 			this.idleDetectionService.updateWorkspacePath(workspacePath)
 		}
+		// kilocode_change start: Update auto-git workspace
+		if (this.autoGitService && workspacePath) {
+			this.autoGitService.updateWorkspacePath(workspacePath)
+		}
+		// kilocode_change end
 	}
 
 	/**
@@ -678,6 +753,13 @@ export class ClineProvider
 		// Check if stack is now empty (Start New Task button visible)
 		if (this.clineStack.length === 0) {
 			this.idleDetectionService?.notifyButtonVisible()
+			// kilocode_change start: Trigger auto-commit when task completes
+			this.autoGitService?.handleTaskComplete().catch((error) => {
+				this.log(
+					`[AutoGit] Error during auto-commit: ${error instanceof Error ? error.message : String(error)}`,
+				)
+			})
+			// kilocode_change end
 		}
 	}
 
@@ -824,6 +906,8 @@ export class ClineProvider
 		this.customModesManager?.dispose()
 		this.idleDetectionService?.dispose()
 		this.idleDetectionService = undefined
+		this.autoGitService?.dispose() // kilocode_change
+		this.autoGitService = undefined // kilocode_change
 		this.log("Disposed all disposables")
 		ClineProvider.activeInstances.delete(this)
 

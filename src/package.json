@@ -655,6 +655,31 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Show idle status in the VSCode status bar (bottom toolbar)"
+				},
+				"kilo-code.autoGit.enabled": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enable automatic git commit and push when tasks complete"
+				},
+				"kilo-code.autoGit.repositoryUrl": {
+					"type": "string",
+					"default": "",
+					"description": "Git repository URL (e.g., https://github.com/username/repo.git). Leave blank to be prompted per-project."
+				},
+				"kilo-code.autoGit.userEmail": {
+					"type": "string",
+					"default": "",
+					"description": "Git user email for commits. Leave blank to be prompted per-project."
+				},
+				"kilo-code.autoGit.commitOnTaskComplete": {
+					"type": "boolean",
+					"default": true,
+					"description": "Automatically commit and push changes when 'Start New Task' button appears"
+				},
+				"kilo-code.autoGit.createBranchOnConflict": {
+					"type": "boolean",
+					"default": true,
+					"description": "Automatically create a new branch if there are conflicts with the remote repository"
 				}
 			}
 		},

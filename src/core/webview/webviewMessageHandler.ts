@@ -1347,6 +1347,41 @@ export const webviewMessageHandler = async (
 			await updateGlobalState("idleShowStatusBar", message.bool ?? true)
 			await provider.postStateToWebview()
 			break
+		case "autoGitEnabled":
+			await updateGlobalState("autoGitEnabled", message.bool ?? false)
+			await provider.postStateToWebview()
+			break
+		case "autoGitRepositoryUrl":
+			await updateGlobalState("autoGitRepositoryUrl", message.text ?? "")
+			await provider.postStateToWebview()
+			break
+		case "autoGitUserEmail":
+			await updateGlobalState("autoGitUserEmail", message.text ?? "")
+			await provider.postStateToWebview()
+			break
+		case "autoGitCommitOnTaskComplete":
+			await updateGlobalState("autoGitCommitOnTaskComplete", message.bool ?? true)
+			await provider.postStateToWebview()
+			break
+		case "autoGitCreateBranchOnConflict":
+			await updateGlobalState("autoGitCreateBranchOnConflict", message.bool ?? true)
+			await provider.postStateToWebview()
+			break
+		case "autoGitSetup":
+			// User provided git configuration through webview
+			if (message.text && message.value) {
+				try {
+					const repositoryUrl = message.text
+					const userEmail = String(message.value)
+					await provider.autoGitService?.setupGitRepository(repositoryUrl, userEmail)
+					vscode.window.showInformationMessage("Git repository configured successfully!")
+					await provider.postStateToWebview()
+				} catch (error) {
+					const errorMessage = error instanceof Error ? error.message : String(error)
+					vscode.window.showErrorMessage(`Failed to setup git: ${errorMessage}`)
+				}
+			}
+			break
 		case "openInBrowser":
 			if (message.url) {
 				vscode.env.openExternal(vscode.Uri.parse(message.url))

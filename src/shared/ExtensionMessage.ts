@@ -155,7 +155,9 @@ export interface ExtensionMessage {
 		| "showTimestamps" // kilocode_change
 		| "organizationSwitchResult"
 		| "idleDetectionStatus"
+		| "autoGitSetupRequired"
 	text?: string
+	workspacePath?: string // kilocode_change: For autoGitSetupRequired
 	// kilocode_change start
 	payload?:
 		| ProfileDataResponsePayload
