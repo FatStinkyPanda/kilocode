@@ -82,7 +82,7 @@ export interface ErrorTrackingConfig {
  */
 export class ErrorTrackingService extends EventEmitter {
 	private static instance: ErrorTrackingService | undefined
-	private config: ErrorTrackingConfig
+	public config: ErrorTrackingConfig
 	private outputChannel: vscode.OutputChannel
 	private workspacePath: string | undefined
 	private context: vscode.ExtensionContext

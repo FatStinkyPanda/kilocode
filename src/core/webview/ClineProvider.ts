@@ -109,6 +109,7 @@ import { getKilocodeConfig, getWorkspaceProjectId, KilocodeConfig } from "../../
 import { IdleDetectionService } from "../../services/idle-detection/IdleDetectionService"
 import { AutoGitService } from "../../services/auto-git/AutoGitService"
 import { ProjectContinuanceService } from "../../services/project-continuance/ProjectContinuanceService"
+import { ErrorTrackingService } from "../../services/error-tracking/ErrorTrackingService"
 
 export type ClineProviderState = Awaited<ReturnType<ClineProvider["getState"]>>
 // kilocode_change end
@@ -169,6 +170,7 @@ export class ClineProvider
 	private idleStatusBarItem?: vscode.StatusBarItem
 	public autoGitService?: AutoGitService
 	public projectContinuanceService?: ProjectContinuanceService
+	public errorTrackingService?: ErrorTrackingService
 
 	constructor(
 		readonly context: vscode.ExtensionContext,
@@ -645,6 +647,98 @@ export class ClineProvider
 					}
 				}),
 			)
+
+			// kilocode_change start: Initialize ErrorTrackingService
+			const errorTrackingEnabled = config.get<boolean>("errorTracking.enabled", false)
+			const errorTrackingBuild = config.get<boolean>("errorTracking.trackBuild", true)
+			const errorTrackingDiagnostics = config.get<boolean>("errorTracking.trackDiagnostics", true)
+			const errorTrackingTerminalOutput = config.get<boolean>("errorTracking.trackTerminalOutput", false)
+			const errorTrackingAutoCreateFolder = config.get<boolean>("errorTracking.autoCreateErrorFolder", true)
+			const errorTrackingMaxRecentErrors = config.get<number>("errorTracking.maxRecentErrors", 10)
+			const errorTrackingIntelligentGrouping = config.get<boolean>("errorTracking.intelligentGrouping", true)
+			const errorTrackingAiContext = config.get<boolean>("errorTracking.aiContextGeneration", true)
+
+			this.errorTrackingService = ErrorTrackingService.getInstance(
+				{
+					enabled: errorTrackingEnabled,
+					trackBuild: errorTrackingBuild,
+					trackDiagnostics: errorTrackingDiagnostics,
+					trackTerminalOutput: errorTrackingTerminalOutput,
+					autoCreateErrorFolder: errorTrackingAutoCreateFolder,
+					maxRecentErrors: errorTrackingMaxRecentErrors,
+					maxErrorsPerFile: 20,
+					intelligentGrouping: errorTrackingIntelligentGrouping,
+					aiContextGeneration: errorTrackingAiContext,
+				},
+				this.outputChannel,
+				this.context,
+				this.currentWorkspacePath,
+			)
+
+			// Start monitoring if enabled
+			if (errorTrackingEnabled) {
+				this.errorTrackingService.startMonitoring().catch((error) => {
+					this.log(
+						`[ErrorTracking] Failed to start monitoring: ${error instanceof Error ? error.message : String(error)}`,
+					)
+				})
+			}
+
+			// Listen for error detection
+			this.errorTrackingService.on("errorDetected", (error) => {
+				this.log(`[ErrorTracking] Error detected: ${error.component} - ${error.message.slice(0, 80)}`)
+			})
+
+			// Listen for summary updates
+			this.errorTrackingService.on("summaryUpdated", (summary) => {
+				// If there are critical errors or significant changes, notify
+				if (summary.needsAIAttention) {
+					this.log(`[ErrorTracking] ⚠️  AI attention needed: ${summary.aiContextSummary}`)
+				}
+			})
+
+			// Set up configuration change listener for ErrorTracking
+			this.disposables.push(
+				vscode.workspace.onDidChangeConfiguration((e) => {
+					if (
+						e.affectsConfiguration(`${Package.name}.errorTracking.enabled`) ||
+						e.affectsConfiguration(`${Package.name}.errorTracking.trackBuild`) ||
+						e.affectsConfiguration(`${Package.name}.errorTracking.trackDiagnostics`) ||
+						e.affectsConfiguration(`${Package.name}.errorTracking.trackTerminalOutput`) ||
+						e.affectsConfiguration(`${Package.name}.errorTracking.autoCreateErrorFolder`) ||
+						e.affectsConfiguration(`${Package.name}.errorTracking.maxRecentErrors`) ||
+						e.affectsConfiguration(`${Package.name}.errorTracking.intelligentGrouping`) ||
+						e.affectsConfiguration(`${Package.name}.errorTracking.aiContextGeneration`)
+					) {
+						const config = vscode.workspace.getConfiguration(Package.name)
+						const wasEnabled = this.errorTrackingService?.config.enabled
+						const nowEnabled = config.get<boolean>("errorTracking.enabled", false)
+
+						this.errorTrackingService?.updateConfig({
+							enabled: nowEnabled,
+							trackBuild: config.get<boolean>("errorTracking.trackBuild", true),
+							trackDiagnostics: config.get<boolean>("errorTracking.trackDiagnostics", true),
+							trackTerminalOutput: config.get<boolean>("errorTracking.trackTerminalOutput", false),
+							autoCreateErrorFolder: config.get<boolean>("errorTracking.autoCreateErrorFolder", true),
+							maxRecentErrors: config.get<number>("errorTracking.maxRecentErrors", 10),
+							maxErrorsPerFile: 20,
+							intelligentGrouping: config.get<boolean>("errorTracking.intelligentGrouping", true),
+							aiContextGeneration: config.get<boolean>("errorTracking.aiContextGeneration", true),
+						})
+
+						// Start/stop monitoring based on enabled state
+						if (!wasEnabled && nowEnabled) {
+							this.errorTrackingService?.startMonitoring().catch((error) => {
+								this.log(
+									`[ErrorTracking] Failed to start monitoring: ${error instanceof Error ? error.message : String(error)}`,
+								)
+							})
+						} else if (wasEnabled && !nowEnabled) {
+							this.errorTrackingService?.stopMonitoring()
+						}
+					}
+				}),
+			)
 			// kilocode_change end
 
 			// Set up configuration change listener
@@ -708,6 +802,11 @@ export class ClineProvider
 		// kilocode_change start: Update project continuance workspace
 		if (this.projectContinuanceService && workspacePath) {
 			this.projectContinuanceService.updateWorkspacePath(workspacePath)
+		}
+		// kilocode_change end
+		// kilocode_change start: Update error tracking workspace
+		if (this.errorTrackingService && workspacePath) {
+			this.errorTrackingService.updateWorkspacePath(workspacePath)
 		}
 		// kilocode_change end
 	}
@@ -1020,6 +1119,8 @@ export class ClineProvider
 		this.autoGitService = undefined // kilocode_change
 		this.projectContinuanceService?.dispose() // kilocode_change
 		this.projectContinuanceService = undefined // kilocode_change
+		this.errorTrackingService?.dispose() // kilocode_change
+		this.errorTrackingService = undefined // kilocode_change
 		this.log("Disposed all disposables")
 		ClineProvider.activeInstances.delete(this)
 

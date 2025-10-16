@@ -727,6 +727,48 @@
 					"minimum": 1,
 					"maximum": 10,
 					"description": "Maximum depth for file tree generation"
+				},
+				"kilo-code.errorTracking.enabled": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enable automatic error tracking and intelligent AI context generation"
+				},
+				"kilo-code.errorTracking.trackBuild": {
+					"type": "boolean",
+					"default": true,
+					"description": "Track build and compilation errors"
+				},
+				"kilo-code.errorTracking.trackDiagnostics": {
+					"type": "boolean",
+					"default": true,
+					"description": "Track VSCode diagnostics (TypeScript, ESLint, etc.)"
+				},
+				"kilo-code.errorTracking.trackTerminalOutput": {
+					"type": "boolean",
+					"default": false,
+					"description": "Track errors from terminal output (experimental)"
+				},
+				"kilo-code.errorTracking.autoCreateErrorFolder": {
+					"type": "boolean",
+					"default": true,
+					"description": "Automatically create .kilo-errors folder for error tracking"
+				},
+				"kilo-code.errorTracking.maxRecentErrors": {
+					"type": "number",
+					"default": 10,
+					"minimum": 5,
+					"maximum": 50,
+					"description": "Maximum number of recent errors to track"
+				},
+				"kilo-code.errorTracking.intelligentGrouping": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable intelligent error grouping and deduplication"
+				},
+				"kilo-code.errorTracking.aiContextGeneration": {
+					"type": "boolean",
+					"default": true,
+					"description": "Generate AI-readable error context files"
 				}
 			}
 		},
