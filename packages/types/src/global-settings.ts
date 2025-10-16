@@ -175,6 +175,14 @@ export const globalSettingsSchema = z.object({
 	hasOpenedModeSelector: z.boolean().optional(),
 	lastModeExportPath: z.string().optional(),
 	lastModeImportPath: z.string().optional(),
+	// kilocode_change start: Idle detection settings
+	idleDetectionEnabled: z.boolean().optional(),
+	idleDetectionMethod: z.string().optional(),
+	idleTimeoutMs: z.number().optional(),
+	idleEnableNotifications: z.boolean().optional(),
+	idleAutoPromptFolder: z.string().optional(),
+	idleShowStatusBar: z.boolean().optional(),
+	// kilocode_change end
 })
 
 export type GlobalSettings = z.infer<typeof globalSettingsSchema>
