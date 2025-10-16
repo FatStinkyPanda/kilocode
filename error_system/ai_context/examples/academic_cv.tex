@@ -1,0 +1,267 @@
+% Academic CV Template
+% Traditional, comprehensive layout for academic positions
+
+\documentclass[11pt,letterpaper]{article}
+
+% Packages
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{fontspec}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{biblatex}
+\usepackage{titlesec}
+
+% Load bibliography (publications)
+\addbibresource{publications.bib}
+
+% Colors
+\definecolor{titlecolor}{RGB}{0,0,128}
+\definecolor{sectioncolor}{RGB}{70,70,70}
+\definecolor{linkcolor}{RGB}{0,0,200}
+
+% Fonts
+\setmainfont{Times New Roman}[Ligatures=TeX]
+\setsansfont{Arial}
+
+% Hyperref
+\hypersetup{
+  colorlinks=true,
+  linkcolor=linkcolor,
+  urlcolor=linkcolor,
+  citecolor=linkcolor
+}
+
+% Section formatting
+\titleformat{\section}
+  {\sffamily\Large\bfseries\color{sectioncolor}}
+  {}{0em}{}[\titlerule]
+\titlespacing{\section}{0pt}{12pt}{6pt}
+
+\titleformat{\subsection}
+  {\sffamily\large\bfseries}
+  {}{0em}{}
+\titlespacing{\subsection}{0pt}{8pt}{4pt}
+
+% Custom commands
+\setlength{\parindent}{0pt}
+\pagestyle{plain}
+
+% CV entry formatting
+\newcommand{\cventry}[4]{%
+  \noindent\textbf{#1} \hfill #2\\
+  \textit{#3}\\
+  #4
+  \vspace{0.3cm}
+}
+
+\newcommand{\education}[5]{%
+  \noindent\textbf{#1} \hfill #2\\
+  #3\\
+  #4\\
+  #5
+  \vspace{0.3cm}
+}
+
+\newcommand{\publication}[4]{%
+  \noindent #1, ``#2,'' \textit{#3}, #4.
+  \vspace{0.2cm}
+}
+
+\begin{document}
+
+% Header
+\begin{center}
+  {\Huge\sffamily\color{titlecolor}\textbf{Dr. Jane Smith}}\\[8pt]
+  {\Large\sffamily Associate Professor of Computer Science}\\[12pt]
+  \begin{tabular}{l l}
+    Email: & \href{mailto:jane.smith@university.edu}{jane.smith@university.edu} \\
+    Phone: & (555) 123-4567 \\
+    Office: & Science Building, Room 301 \\
+    Web: & \href{https://janesmith.edu}{https://janesmith.edu} \\
+    ORCID: & \href{https://orcid.org/0000-0000-0000-0000}{0000-0000-0000-0000}
+  \end{tabular}
+\end{center}
+
+\vspace{0.5cm}
+
+\section{Research Interests}
+Machine Learning, Natural Language Processing, Computer Vision, Deep Learning, Artificial Intelligence, Data Mining, Neural Network Architectures, Transfer Learning
+
+\section{Education}
+
+\education{Ph.D. in Computer Science}{2015}
+{Massachusetts Institute of Technology}{Cambridge, MA}
+{Dissertation: \textit{Advanced Neural Network Architectures for Natural Language Understanding}\\
+Advisor: Prof. John Doe}
+
+\education{M.S. in Computer Science}{2010}
+{Stanford University}{Stanford, CA}
+{Thesis: \textit{Statistical Methods for Text Classification}}
+
+\education{B.S. in Computer Science}{2008}
+{University of California, Berkeley}{Berkeley, CA}
+{Magna Cum Laude, GPA: 3.9/4.0}
+
+\section{Academic Appointments}
+
+\cventry{Associate Professor}{2020 -- Present}
+{Department of Computer Science, University Name}
+{Teaching graduate and undergraduate courses in machine learning and AI. Leading research group of 8 PhD students and 4 postdocs.}
+
+\cventry{Assistant Professor}{2015 -- 2020}
+{Department of Computer Science, University Name}
+{Established machine learning research laboratory. Developed new curriculum for AI and ML courses.}
+
+\cventry{Postdoctoral Researcher}{2013 -- 2015}
+{Computer Science and AI Laboratory, MIT}
+{Conducted research on deep learning for natural language processing under supervision of Prof. Michael Johnson.}
+
+\section{Honors and Awards}
+
+\begin{itemize}[leftmargin=*]
+  \item \textbf{NSF CAREER Award}, National Science Foundation (2021)
+  \item \textbf{Best Paper Award}, International Conference on Machine Learning (2020)
+  \item \textbf{Early Career Researcher Award}, Association for Computational Linguistics (2019)
+  \item \textbf{Outstanding Dissertation Award}, MIT Computer Science Department (2015)
+  \item \textbf{Google PhD Fellowship} (2012 -- 2015)
+  \item \textbf{Graduate Research Fellowship}, National Science Foundation (2010 -- 2015)
+\end{itemize}
+
+\section{Publications}
+
+\subsection{Peer-Reviewed Journal Articles}
+
+\begin{enumerate}[leftmargin=*]
+  \item Smith, J., Doe, J., \& Johnson, M. (2023). ``Transformer Models for Low-Resource Languages,'' \textit{Nature Machine Intelligence}, 5(2), 123--135. DOI: 10.1038/nmi.2023.1234
+
+  \item Smith, J. \& Chen, W. (2022). ``Few-Shot Learning with Meta-Learning Approaches,'' \textit{Journal of Machine Learning Research}, 23(45), 1--32.
+
+  \item Smith, J., Brown, A., \& Wilson, K. (2021). ``Neural Architecture Search for Computer Vision,'' \textit{IEEE Transactions on Pattern Analysis and Machine Intelligence}, 43(8), 2567--2580.
+
+  \item Smith, J. (2020). ``Attention Mechanisms in Deep Learning: A Comprehensive Survey,'' \textit{ACM Computing Surveys}, 52(3), Article 67.
+\end{enumerate}
+
+\subsection{Peer-Reviewed Conference Papers}
+
+\begin{enumerate}[leftmargin=*]
+  \item Smith, J. \& Zhang, L. (2023). ``Efficient Training of Large Language Models,'' In \textit{Proceedings of NeurIPS 2023}, pp. 12345--12358.
+
+  \item Smith, J., Lee, S., \& Park, J. (2022). ``Cross-Lingual Transfer Learning for NLP,'' In \textit{Proceedings of ACL 2022}, pp. 5678--5690.
+
+  \item Smith, J. \& Kumar, R. (2021). ``Self-Supervised Learning for Computer Vision,'' In \textit{Proceedings of CVPR 2021}, pp. 9876--9885.
+
+  \item Smith, J., Garcia, M., \& Liu, Y. (2020). ``Adversarial Robustness in Neural Networks,'' In \textit{Proceedings of ICML 2020}, pp. 3456--3467. \textbf{Best Paper Award}
+\end{enumerate}
+
+\subsection{Book Chapters}
+
+\begin{enumerate}[leftmargin=*]
+  \item Smith, J. (2022). ``Deep Learning for Natural Language Processing,'' In A. Editor \& B. Editor (Eds.), \textit{Handbook of Artificial Intelligence}, pp. 234--267. Springer.
+\end{enumerate}
+
+\section{Research Grants}
+
+\cventry{NSF CAREER Award}{2021 -- 2026}
+{\$500,000 (PI)}
+{Project: ``Foundations of Few-Shot Learning for Natural Language Understanding''}
+
+\cventry{DARPA Research Grant}{2020 -- 2024}
+{\$1,200,000 (Co-PI)}
+{Project: ``Robust AI Systems for Critical Applications''}
+
+\cventry{Google Faculty Research Award}{2019}
+{\$75,000 (PI)}
+{Project: ``Efficient Neural Architecture Search''}
+
+\section{Teaching Experience}
+
+\subsection{University Name}
+
+\textbf{Graduate Courses}
+\begin{itemize}[leftmargin=*]
+  \item CS 601: Advanced Machine Learning (Fall 2020, 2021, 2022, 2023)
+  \item CS 610: Deep Learning (Spring 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023)
+  \item CS 650: Natural Language Processing (Fall 2019, 2021, 2023)
+\end{itemize}
+
+\textbf{Undergraduate Courses}
+\begin{itemize}[leftmargin=*]
+  \item CS 301: Introduction to Machine Learning (Spring 2016, 2017, 2018)
+  \item CS 201: Data Structures and Algorithms (Fall 2015, 2016)
+\end{itemize}
+
+\section{Graduate Students Supervised}
+
+\subsection{Current PhD Students}
+\begin{itemize}[leftmargin=*]
+  \item John Chen (2021 -- present): Transfer learning for low-resource languages
+  \item Maria Garcia (2020 -- present): Neural architecture search
+  \item David Lee (2020 -- present): Few-shot learning for computer vision
+  \item Sarah Johnson (2019 -- present): Adversarial robustness
+\end{itemize}
+
+\subsection{Graduated PhD Students}
+\begin{itemize}[leftmargin=*]
+  \item Dr. Michael Brown (2023): ``Meta-Learning for Rapid Adaptation''\\
+  Current position: Research Scientist at Google Brain
+
+  \item Dr. Lisa Wong (2022): ``Efficient Training Methods for Large Models''\\
+  Current position: Assistant Professor at Carnegie Mellon University
+
+  \item Dr. Ahmed Hassan (2021): ``Cross-Lingual NLP Models''\\
+  Current position: Senior ML Engineer at Meta
+\end{itemize}
+
+\section{Professional Service}
+
+\subsection{Editorial Boards}
+\begin{itemize}[leftmargin=*]
+  \item Associate Editor, \textit{Journal of Machine Learning Research} (2022 -- present)
+  \item Editorial Board Member, \textit{AI Journal} (2020 -- present)
+\end{itemize}
+
+\subsection{Conference Organization}
+\begin{itemize}[leftmargin=*]
+  \item Program Chair, International Conference on Machine Learning (ICML 2024)
+  \item Area Chair, NeurIPS (2021, 2022, 2023)
+  \item Senior Program Committee, AAAI (2019, 2020, 2021, 2022, 2023)
+\end{itemize}
+
+\subsection{Reviewing}
+\begin{itemize}[leftmargin=*]
+  \item Regular reviewer for: NeurIPS, ICML, ICLR, ACL, EMNLP, CVPR, ICCV
+  \item Journal reviewer for: JMLR, TPAMI, Nature Machine Intelligence, AI Journal
+\end{itemize}
+
+\section{Invited Talks}
+
+\begin{enumerate}[leftmargin=*]
+  \item ``The Future of Few-Shot Learning,'' Keynote at International AI Conference, London, UK, October 2023
+  \item ``Neural Architecture Search: Challenges and Opportunities,'' Google Research, Mountain View, CA, June 2023
+  \item ``Transfer Learning for NLP,'' MIT CSAIL Seminar, Cambridge, MA, March 2023
+  \item ``Advances in Deep Learning,'' Microsoft Research, Redmond, WA, November 2022
+\end{enumerate}
+
+\section{Professional Memberships}
+
+\begin{itemize}[leftmargin=*]
+  \item Association for Computing Machinery (ACM)
+  \item Institute of Electrical and Electronics Engineers (IEEE)
+  \item Association for the Advancement of Artificial Intelligence (AAAI)
+  \item Association for Computational Linguistics (ACL)
+\end{itemize}
+
+\section{Technical Skills}
+
+\textbf{Programming Languages:} Python, C++, Java, R, MATLAB\\
+\textbf{ML Frameworks:} PyTorch, TensorFlow, JAX, scikit-learn\\
+\textbf{Tools:} Git, Docker, Kubernetes, AWS, GCP
+
+\vspace{0.5cm}
+
+\begin{center}
+\textit{Last updated: \today}
+\end{center}
+
+\end{document}

@@ -1,0 +1,275 @@
+% Creative Resume Template
+% Modern design with graphics, colors, and visual elements
+
+\documentclass[11pt,letterpaper]{article}
+
+% Packages
+\usepackage[letterpaper,top=0.5in,bottom=0.5in,left=0.5in,right=0.5in]{geometry}
+\usepackage{fontspec}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usetikzlibrary{shapes, positioning, calc}
+
+% Colors
+\definecolor{primary}{RGB}{230,80,80}
+\definecolor{secondary}{RGB}{41,128,185}
+\definecolor{accent}{RGB}{39,174,96}
+\definecolor{dark}{RGB}{44,62,80}
+\definecolor{light}{gray}{0.95}
+
+% Fonts
+\setmainfont{Lato}[
+  UprightFont=*-Regular,
+  BoldFont=*-Bold,
+  ItalicFont=*-Italic
+]
+\newfontfamily\titlefont{Montserrat}[UprightFont=*-Bold]
+
+% Hyperref
+\hypersetup{
+  colorlinks=true,
+  urlcolor=secondary,
+  hidelinks
+}
+
+% Settings
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+
+% Custom commands
+\newcommand{\headersection}[2]{%
+  \vspace{0.3cm}
+  \begin{tikzpicture}
+    \node[rectangle, fill=primary, text=white, font=\large\bfseries,
+          minimum width=\textwidth, minimum height=0.8cm, anchor=west] at (0,0)
+          {\hspace{0.2cm}#1};
+  \end{tikzpicture}
+  \vspace{0.2cm}
+}
+
+\newcommand{\jobentry}[4]{%
+  \textbf{\color{dark}#1} \hfill {\color{secondary}#2}\\
+  \textit{#3}\\[0.1cm]
+  #4
+  \vspace{0.3cm}
+}
+
+\newcommand{\skillrating}[2]{%
+  \textbf{#1}\\[-0.1cm]
+  \begin{tikzpicture}
+    \foreach \x in {1,...,5} {
+      \ifnum\x>#2
+        \draw[gray!30, thick] (\x*0.5,0) circle (0.2cm);
+      \else
+        \fill[accent] (\x*0.5,0) circle (0.2cm);
+      \fi
+    }
+  \end{tikzpicture}
+  \vspace{0.15cm}
+}
+
+\newcommand{\progressbar}[2]{%
+  \noindent\textbf{#1}\\[-0.2cm]
+  \begin{tikzpicture}
+    \fill[light] (0,0) rectangle (5cm, 0.4cm);
+    \fill[secondary] (0,0) rectangle (#2cm, 0.4cm);
+  \end{tikzpicture}
+  \vspace{0.1cm}
+}
+
+\newcommand{\icontext}[2]{%
+  \begin{tikzpicture}[baseline=(text.base)]
+    \node[circle, fill=secondary, text=white, inner sep=2pt] at (0,0) {\small\textbf{#1}};
+    \node[right, text=dark] (text) at (0.4,0) {#2};
+  \end{tikzpicture}
+}
+
+\begin{document}
+
+% Header with decorative design
+\begin{tikzpicture}[remember picture, overlay]
+  % Background shape
+  \fill[primary] (current page.north west) rectangle ([yshift=-5cm]current page.north east);
+
+  % Name and title
+  \node[white, font=\titlefont\Huge] at ([yshift=-2cm]current page.north)
+        {ALEX JOHNSON};
+  \node[white, font=\Large] at ([yshift=-3cm]current page.north)
+        {CREATIVE DESIGNER \& DEVELOPER};
+
+  % Contact info
+  \node[white, align=center] at ([yshift=-4cm]current page.north) {
+    \href{mailto:alex@email.com}{alex@email.com} $|$
+    (555) 123-4567 $|$
+    \href{https://alexjohnson.com}{alexjohnson.com}
+  };
+\end{tikzpicture}
+
+\vspace{5.5cm}
+
+% Professional Summary
+\headersection{PROFESSIONAL SUMMARY}{}
+
+Creative and versatile designer-developer with 6+ years of experience crafting engaging digital experiences. Expertise in UI/UX design, front-end development, and brand identity. Passionate about creating beautiful, functional, and user-centered designs.
+
+% Skills Section with Visual Elements
+\headersection{CORE SKILLS}{}
+
+\begin{minipage}[t]{0.48\textwidth}
+  \progressbar{UI/UX Design}{4.5}
+  \progressbar{Web Development}{4.2}
+  \progressbar{Graphic Design}{4.8}
+  \progressbar{Branding}{4.0}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+  \progressbar{Motion Graphics}{3.8}
+  \progressbar{3D Modeling}{3.5}
+  \progressbar{Photography}{4.3}
+  \progressbar{Video Editing}{3.9}
+\end{minipage}
+
+\vspace{0.3cm}
+
+% Technical Skills
+\headersection{TECHNICAL EXPERTISE}{}
+
+\begin{minipage}[t]{0.48\textwidth}
+  \textbf{\color{primary}Design Tools}
+  \begin{itemize}[leftmargin=*, nosep]
+    \item Figma, Adobe XD, Sketch
+    \item Photoshop, Illustrator, InDesign
+    \item After Effects, Premiere Pro
+    \item Blender, Cinema 4D
+  \end{itemize}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+  \textbf{\color{primary}Development}
+  \begin{itemize}[leftmargin=*, nosep]
+    \item HTML5, CSS3, JavaScript
+    \item React, Vue.js, Next.js
+    \item Tailwind CSS, SASS
+    \item Git, npm, Webpack
+  \end{itemize}
+\end{minipage}
+
+\vspace{0.3cm}
+
+% Experience
+\headersection{PROFESSIONAL EXPERIENCE}{}
+
+\jobentry{Senior UI/UX Designer}{Jan 2021 -- Present}
+{Creative Digital Agency | San Francisco, CA}
+{
+\begin{itemize}[leftmargin=*, nosep]
+  \item Lead design for 20+ client projects including web apps, mobile apps, and brand identities
+  \item Collaborate with cross-functional teams to deliver pixel-perfect designs
+  \item Conduct user research, create personas, wireframes, and high-fidelity prototypes
+  \item Increased client satisfaction scores by 35\% through improved design processes
+  \item Mentor junior designers and conduct design workshops
+\end{itemize}
+}
+
+\jobentry{Product Designer}{Jun 2019 -- Dec 2020}
+{Tech Startup | Los Angeles, CA}
+{
+\begin{itemize}[leftmargin=*, nosep]
+  \item Designed complete design system with 100+ reusable components
+  \item Created user flows, wireframes, and prototypes for SaaS platform
+  \item Improved user engagement by 45\% through redesign of onboarding experience
+  \item Worked closely with developers to ensure design feasibility and implementation
+\end{itemize}
+}
+
+\jobentry{Freelance Designer \& Developer}{Jan 2017 -- May 2019}
+{Self-Employed | Remote}
+{
+\begin{itemize}[leftmargin=*, nosep]
+  \item Served 30+ clients across various industries including tech, fashion, and food
+  \item Delivered end-to-end projects from concept to deployment
+  \item Specialized in brand identity, web design, and front-end development
+  \item Maintained 100\% client satisfaction rate with strong portfolio of work
+\end{itemize}
+}
+
+% Featured Projects
+\headersection{FEATURED PROJECTS}{}
+
+\begin{minipage}[t]{0.48\textwidth}
+  \textbf{\color{secondary}\large E-Commerce Platform}\\
+  \textit{Role: Lead Designer}\\[0.1cm]
+  Designed complete e-commerce experience with custom illustrations and animations. Increased conversion rate by 52\%.\\
+  \textit{Tools: Figma, Illustrator, After Effects}\\
+  \href{https://project-url.com}{\color{accent}View Project $\rightarrow$}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+  \textbf{\color{secondary}\large Brand Identity System}\\
+  \textit{Role: Creative Director}\\[0.1cm]
+  Created comprehensive brand identity including logo, color system, typography, and brand guidelines for tech startup.\\
+  \textit{Tools: Illustrator, InDesign, Figma}\\
+  \href{https://project-url.com}{\color{accent}View Project $\rightarrow$}
+\end{minipage}
+
+\vspace{0.3cm}
+
+\begin{minipage}[t]{0.48\textwidth}
+  \textbf{\color{secondary}\large Mobile App Design}\\
+  \textit{Role: UI/UX Designer}\\[0.1cm]
+  Designed iOS and Android app with focus on accessibility and user experience. Featured in App Store.\\
+  \textit{Tools: Figma, Principle, Lottie}\\
+  \href{https://project-url.com}{\color{accent}View Project $\rightarrow$}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+  \textbf{\color{secondary}\large Motion Graphics Campaign}\\
+  \textit{Role: Motion Designer}\\[0.1cm]
+  Created series of animated videos for social media campaign reaching 2M+ views across platforms.\\
+  \textit{Tools: After Effects, Cinema 4D, Premiere}\\
+  \href{https://project-url.com}{\color{accent}View Project $\rightarrow$}
+\end{minipage}
+
+\vspace{0.3cm}
+
+% Education
+\headersection{EDUCATION}{}
+
+\textbf{Bachelor of Fine Arts in Graphic Design} \hfill {\color{secondary}2013 -- 2017}\\
+Rhode Island School of Design | Providence, RI\\
+\textit{Summa Cum Laude, GPA: 3.9/4.0}
+
+\vspace{0.2cm}
+
+\textbf{Certifications}
+\begin{itemize}[leftmargin=*, nosep]
+  \item Google UX Design Professional Certificate (2022)
+  \item Nielsen Norman Group UX Certification (2021)
+  \item Adobe Certified Expert - Photoshop (2020)
+\end{itemize}
+
+% Awards
+\headersection{AWARDS \& RECOGNITION}{}
+
+\begin{itemize}[leftmargin=*, nosep]
+  \item \textbf{Webby Award} - Best User Experience (2023)
+  \item \textbf{Awwwards} - Site of the Day (2022)
+  \item \textbf{CSS Design Awards} - UI Design Award (2021)
+  \item \textbf{Dribbble} - Top Designer Badge (2020, 2021, 2022)
+\end{itemize}
+
+% Footer
+\vspace{0.5cm}
+\begin{center}
+  \begin{tikzpicture}
+    \fill[primary] (0,0) rectangle (\textwidth, 0.1cm);
+  \end{tikzpicture}\\[0.2cm]
+  {\small\color{dark} Portfolio: \href{https://alexjohnson.com}{\textbf{alexjohnson.com}} $|$
+  LinkedIn: \href{https://linkedin.com/in/alexjohnson}{\textbf{/alexjohnson}} $|$
+  Dribbble: \href{https://dribbble.com/alexjohnson}{\textbf{/alexjohnson}}}
+\end{center}
+
+\end{document}

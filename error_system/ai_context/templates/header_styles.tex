@@ -1,0 +1,265 @@
+% Header Styles Collection
+% Various header designs for resumes and documents
+
+% ====================
+% Style 1: Classic Centered
+% ====================
+\newcommand{\classiccenteredheader}[5]{%
+  % #1: Name, #2: Title, #3: Email, #4: Phone, #5: Links
+  \begin{center}
+    {\Huge\bfseries #1}\\[5pt]
+    {\large #2}\\[8pt]
+    #3 $|$ #4\\
+    #5
+  \end{center}
+  \vspace{0.3cm}
+}
+
+% Usage:
+% \classiccenteredheader{John Doe}{Software Engineer}{john@email.com}{(555) 123-4567}{LinkedIn | GitHub}
+
+
+% ====================
+% Style 2: Modern Left-Aligned
+% ====================
+\newcommand{\modernleftheader}[5]{%
+  % #1: Name, #2: Title, #3: Email, #4: Phone, #5: Links
+  {\Huge\bfseries #1}\\[3pt]
+  {\large\color{gray} #2}\\[8pt]
+  #3 $|$ #4 $|$ #5
+  \vspace{0.3cm}
+  \hrule height 1pt
+  \vspace{0.3cm}
+}
+
+% Usage:
+% \modernleftheader{Jane Smith}{Data Scientist}{jane@email.com}{(555) 987-6543}{Portfolio | LinkedIn}
+
+
+% ====================
+% Style 3: Two-Column Header
+% ====================
+\newcommand{\twocolumnheader}[6]{%
+  % #1: Name, #2: Title, #3: Email, #4: Phone, #5: LinkedIn, #6: GitHub
+  \begin{minipage}[t]{0.6\textwidth}
+    {\Huge\bfseries #1}\\[3pt]
+    {\large #2}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.35\textwidth}
+    \raggedleft
+    \href{mailto:#3}{#3}\\
+    \href{tel:#4}{#4}\\
+    \href{#5}{LinkedIn}\\
+    \href{#6}{GitHub}
+  \end{minipage}
+  \vspace{0.3cm}
+}
+
+% Usage:
+% \twocolumnheader{Alex Johnson}{UX Designer}{alex@email.com}{555-1234}{https://linkedin.com/in/alex}{https://github.com/alex}
+
+
+% ====================
+% Style 4: Colored Background Header
+% ====================
+\newcommand{\coloredheader}[5]{%
+  % #1: Name, #2: Title, #3: Email, #4: Phone, #5: Website
+  % Requires: tikz, xcolor packages
+  \begin{tikzpicture}[remember picture, overlay]
+    \fill[blue!60] (current page.north west) rectangle ([yshift=-3cm]current page.north east);
+    \node[white, font=\Huge\bfseries] at ([yshift=-1.2cm]current page.north) {#1};
+    \node[white, font=\large] at ([yshift=-1.8cm]current page.north) {#2};
+    \node[white, font=\small] at ([yshift=-2.4cm]current page.north) {#3 $|$ #4 $|$ #5};
+  \end{tikzpicture}
+  \vspace{3.5cm}
+}
+
+% Usage (requires tikz):
+% \coloredheader{Maria Garcia}{Product Manager}{maria@email.com}{555-4321}{mariagarcia.com}
+
+
+% ====================
+% Style 5: Minimalist with Line
+% ====================
+\newcommand{\minimalistheader}[4]{%
+  % #1: Name, #2: Email, #3: Phone, #4: Links
+  {\LARGE\bfseries #1} \hfill #2 $|$ #3 $|$ #4
+  \vspace{0.15cm}
+  \hrule height 0.5pt
+  \vspace{0.3cm}
+}
+
+% Usage:
+% \minimalistheader{Chris Lee}{chris@email.com}{555-5678}{linkedin.com/in/chris}
+
+
+% ====================
+% Style 6: Bold Name with Contact Icons
+% ====================
+\newcommand{\iconheader}[5]{%
+  % #1: Name, #2: Title, #3: Email, #4: Phone, #5: Location
+  % Requires: fontawesome5 package for icons
+  \begin{center}
+    {\Huge\bfseries #1}\\[5pt]
+    {\large\color{blue!70!black} #2}\\[10pt]
+    \faEnvelope\ #3 \quad
+    \faPhone\ #4 \quad
+    \faMapMarker\ #5
+  \end{center}
+  \vspace{0.3cm}
+}
+
+% Usage (requires fontawesome5):
+% \iconheader{David Kim}{Marketing Manager}{david@email.com}{555-9012}{New York, NY}
+
+
+% ====================
+% Style 7: Professional with Separator
+% ====================
+\newcommand{\professionalheader}[5]{%
+  % #1: Name, #2: Title, #3: Email, #4: Phone, #5: LinkedIn
+  \begin{center}
+    {\Huge\bfseries\color{blue!80!black} #1}\\[5pt]
+    {\large #2}
+  \end{center}
+  \vspace{0.2cm}
+  \begin{center}
+    \begin{tikzpicture}
+      \draw[blue!60, line width=2pt] (0,0) -- (3,0);
+    \end{tikzpicture}
+  \end{center}
+  \vspace{0.2cm}
+  \begin{center}
+    #3 \quad $\bullet$ \quad #4 \quad $\bullet$ \quad #5
+  \end{center}
+  \vspace{0.3cm}
+}
+
+% Usage:
+% \professionalheader{Sarah Johnson}{Financial Analyst}{sarah@email.com}{555-3456}{linkedin.com/in/sarah}
+
+
+% ====================
+% Style 8: Side-by-Side with Accent
+% ====================
+\newcommand{\sidebysideheader}[6]{%
+  % #1: Name, #2: Title, #3: Email, #4: Phone, #5: Website, #6: Accent color
+  \begin{minipage}[t]{0.02\textwidth}
+    \begin{tikzpicture}
+      \fill[#6] (0,0) rectangle (0.2cm, 2cm);
+    \end{tikzpicture}
+  \end{minipage}
+  \hspace{0.3cm}
+  \begin{minipage}[t]{0.9\textwidth}
+    {\Huge\bfseries #1}\\[3pt]
+    {\large\color{#6} #2}\\[8pt]
+    #3 $|$ #4 $|$ #5
+  \end{minipage}
+  \vspace{0.3cm}
+}
+
+% Usage:
+% \sidebysideheader{Emily Chen}{Software Architect}{emily@email.com}{555-7890}{emilychen.dev}{blue!60}
+
+
+% ====================
+% Style 9: Compact Single Line
+% ====================
+\newcommand{\compactheader}[4]{%
+  % #1: Name, #2: Email, #3: Phone, #4: LinkedIn
+  {\Large\bfseries #1} \hfill
+  \small #2 $|$ #3 $|$ #4
+  \vspace{0.2cm}
+  \hrule
+  \vspace{0.3cm}
+}
+
+% Usage:
+% \compactheader{Michael Brown}{michael@email.com}{555-2345}{linkedin.com/in/michael}
+
+
+% ====================
+% Style 10: Creative with Subheader
+% ====================
+\newcommand{\creativeheader}[6]{%
+  % #1: Name, #2: Primary title, #3: Secondary title, #4: Email, #5: Phone, #6: Portfolio
+  \begin{center}
+    {\Huge\bfseries\color{purple!70!black} #1}\\[5pt]
+    {\Large #2}\\
+    {\large\color{gray} #3}\\[10pt]
+    \href{mailto:#4}{#4} \quad $\bullet$ \quad
+    \href{tel:#5}{#5} \quad $\bullet$ \quad
+    \href{#6}{Portfolio}
+  \end{center}
+  \vspace{0.3cm}
+}
+
+% Usage:
+% \creativeheader{Lisa Wang}{Creative Director}{Branding & Visual Design}{lisa@email.com}{555-6789}{lisawang.com}
+
+
+% ====================
+% Style 11: Academic Style
+% ====================
+\newcommand{\academicheader}[5]{%
+  % #1: Name with title, #2: Position, #3: Department, #4: Email, #5: Office
+  \begin{center}
+    {\LARGE\bfseries #1}\\[5pt]
+    {\large #2}\\
+    #3\\[8pt]
+    \begin{tabular}{l l}
+      Email: & \href{mailto:#4}{#4} \\
+      Office: & #5
+    \end{tabular}
+  \end{center}
+  \vspace{0.5cm}
+}
+
+% Usage:
+% \academicheader{Dr. Robert Smith, Ph.D.}{Associate Professor}{Department of Computer Science}{rsmith@university.edu}{Science Building 301}
+
+
+% ====================
+% Style 12: Boxed Header
+% ====================
+\newcommand{\boxedheader}[5]{%
+  % #1: Name, #2: Title, #3: Email, #4: Phone, #5: Location
+  \begin{tikzpicture}
+    \node[rectangle, rounded corners=5pt, draw=blue!60, line width=2pt,
+          fill=blue!5, minimum width=\textwidth, minimum height=2.5cm] (box) {};
+    \node at (box.center) {%
+      \begin{minipage}{0.9\textwidth}
+        \centering
+        {\Huge\bfseries #1}\\[5pt]
+        {\large #2}\\[8pt]
+        #3 \quad $\bullet$ \quad #4 \quad $\bullet$ \quad #5
+      \end{minipage}
+    };
+  \end{tikzpicture}
+  \vspace{0.3cm}
+}
+
+% Usage (requires tikz):
+% \boxedheader{Jessica Taylor}{Business Analyst}{jessica@email.com}{555-8901}{Chicago, IL}
+
+
+% ====================
+% Example Document Setup
+% ====================
+%
+% \documentclass{article}
+% \usepackage[margin=0.75in]{geometry}
+% \usepackage{xcolor}
+% \usepackage{hyperref}
+% \usepackage{tikz}
+% \usepackage{fontawesome5}
+%
+% \begin{document}
+%
+% % Choose one header style:
+% \classiccenteredheader{Your Name}{Your Title}{email@example.com}{(555) 123-4567}{LinkedIn | GitHub}
+%
+% % Rest of resume content...
+%
+% \end{document}

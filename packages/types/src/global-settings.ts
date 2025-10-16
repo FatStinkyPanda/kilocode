@@ -201,6 +201,16 @@ export const globalSettingsSchema = z.object({
 	projectContinuanceIncludeFileTree: z.boolean().optional(),
 	projectContinuanceMaxFileTreeDepth: z.number().optional(),
 	// kilocode_change end
+	// kilocode_change start: Error tracking settings
+	errorTrackingEnabled: z.boolean().optional(),
+	errorTrackingBuild: z.boolean().optional(),
+	errorTrackingDiagnostics: z.boolean().optional(),
+	errorTrackingTerminalOutput: z.boolean().optional(),
+	errorTrackingAutoCreateFolder: z.boolean().optional(),
+	errorTrackingMaxRecentErrors: z.number().optional(),
+	errorTrackingIntelligentGrouping: z.boolean().optional(),
+	errorTrackingAiContext: z.boolean().optional(),
+	// kilocode_change end
 })
 
 export type GlobalSettings = z.infer<typeof globalSettingsSchema>

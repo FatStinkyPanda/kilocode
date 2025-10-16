@@ -1,0 +1,351 @@
+% Complex Layout Template
+% Advanced layout techniques combining multiple LaTeX features
+
+\documentclass[11pt,letterpaper]{article}
+
+% Packages
+\usepackage[letterpaper,top=0.3in,bottom=0.3in,left=0.3in,right=0.3in]{geometry}
+\usepackage{fontspec}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{multicol}
+\usepackage{tabularx}
+\usepackage{graphicx}
+\usetikzlibrary{shapes, positioning, calc, backgrounds, fit, patterns}
+
+% Colors
+\definecolor{sidebar}{RGB}{52,73,94}
+\definecolor{main}{RGB}{236,240,241}
+\definecolor{accent1}{RGB}{52,152,219}
+\definecolor{accent2}{RGB}{46,204,113}
+\definecolor{accent3}{RGB}{241,196,15}
+\definecolor{text}{RGB}{44,62,80}
+\definecolor{textlight}{gray}{0.4}
+
+% Fonts
+\setmainfont{Open Sans}[
+  UprightFont=*-Regular,
+  BoldFont=*-Bold,
+  ItalicFont=*-Italic
+]
+\newfontfamily\headingfont{Raleway}[UprightFont=*-Bold]
+
+% Hyperref
+\hypersetup{
+  colorlinks=false,
+  hidelinks
+}
+
+% Settings
+\setlength{\parindent}{0pt}
+\pagestyle{empty}
+
+% Custom commands
+\newcommand{\sidebarheading}[1]{%
+  \vspace{0.3cm}
+  {\headingfont\large\color{white}#1}\\[0.1cm]
+  \textcolor{accent2}{\rule{4cm}{2pt}}
+  \vspace{0.2cm}
+}
+
+\newcommand{\mainheading}[1]{%
+  \vspace{0.3cm}
+  \begin{tikzpicture}
+    \node[anchor=west, font=\headingfont\Large, text=sidebar] at (0,0) {#1};
+    \draw[accent1, line width=3pt] (0,-0.15) -- (3,-0.15);
+  \end{tikzpicture}
+  \vspace{0.2cm}
+}
+
+\newcommand{\experienceentry}[5]{%
+  \begin{tikzpicture}
+    % Timeline dot
+    \fill[accent1] (0,0.2) circle (0.15cm);
+    % Content box
+    \node[anchor=west, text width=13cm] at (0.5,0) {%
+      \textbf{\color{sidebar}#1} \hfill {\color{accent1}#2}\\
+      \textit{\color{textlight}#3}\\[0.1cm]
+      #4
+    };
+    % Connection line
+    \draw[accent1, line width=2pt] (0,0.2) -- (0.3,0.2);
+  \end{tikzpicture}
+  \vspace{#5}
+}
+
+\newcommand{\skillcircle}[2]{%
+  \begin{tikzpicture}
+    \draw[gray!20, line width=4pt] (0,0) circle (0.8cm);
+    \draw[accent2, line width=4pt] (0,0) arc[start angle=90, end angle=90-#2*3.6, radius=0.8cm];
+    \node[font=\small\bfseries] at (0,0) {#2\%};
+    \node[below, font=\tiny, text width=1.8cm, align=center] at (0,-1.1) {#1};
+  \end{tikzpicture}
+}
+
+\newcommand{\timelinedot}[3]{%
+  \begin{tikzpicture}
+    \fill[#1] (0,0) circle (0.2cm);
+    \node[right, font=\small\bfseries] at (0.3,0.1) {#2};
+    \node[right, font=\scriptsize\color{textlight}] at (0.3,-0.2) {#3};
+  \end{tikzpicture}
+}
+
+\begin{document}
+
+% Full page background
+\begin{tikzpicture}[remember picture, overlay]
+  % Sidebar background
+  \fill[sidebar] (current page.north west) rectangle ([xshift=5cm]current page.south west);
+
+  % Main area background
+  \fill[main] ([xshift=5cm]current page.north west) rectangle (current page.south east);
+
+  % Decorative shapes
+  \fill[accent1, opacity=0.1] ([xshift=5cm, yshift=-2cm]current page.north west)
+        -- ([xshift=8cm, yshift=-2cm]current page.north west)
+        -- ([xshift=6cm, yshift=-4cm]current page.north west) -- cycle;
+
+  \fill[accent2, opacity=0.1] ([xshift=-2cm, yshift=3cm]current page.south east)
+        circle (3cm);
+\end{tikzpicture}
+
+% SIDEBAR CONTENT
+\begin{tikzpicture}[remember picture, overlay]
+  \node[anchor=north west, text width=4.5cm] at ([xshift=0.25cm, yshift=-0.5cm]current page.north west) {%
+    \begin{minipage}{4.5cm}
+
+      % Photo placeholder
+      \begin{center}
+        \begin{tikzpicture}
+          \draw[white, line width=3pt] (0,0) circle (1.5cm);
+          \node[font=\Huge, text=white] at (0,0) {JS};
+        \end{tikzpicture}
+
+        \vspace{0.3cm}
+        {\headingfont\LARGE\color{white}JORDAN\\SMITH}
+
+        \vspace{0.1cm}
+        {\color{accent2}Full Stack Developer}
+      \end{center}
+
+      \sidebarheading{CONTACT}
+
+      \begin{tikzpicture}
+        \node[white, text width=4cm] at (0,0) {%
+          \icontext{@}{jordan.smith@email.com}\\[0.2cm]
+          \icontext{\#}{(555) 123-4567}\\[0.2cm]
+          \icontext{in}{linkedin.com/in/jordansmith}\\[0.2cm]
+          \icontext{gh}{github.com/jordansmith}\\[0.2cm]
+          \icontext{web}{jordansmith.dev}
+        };
+      \end{tikzpicture}
+
+      \sidebarheading{SKILLS}
+
+      {\color{white}
+      \textbf{Frontend}\\
+      React, Vue, Angular\\
+      TypeScript, JavaScript\\[0.2cm]
+
+      \textbf{Backend}\\
+      Node.js, Python, Java\\
+      PostgreSQL, MongoDB\\[0.2cm]
+
+      \textbf{DevOps}\\
+      Docker, Kubernetes\\
+      AWS, CI/CD, Terraform\\[0.2cm]
+
+      \textbf{Tools}\\
+      Git, VS Code, Figma\\
+      Jira, Postman, Jest
+      }
+
+      \sidebarheading{LANGUAGES}
+
+      \begin{tikzpicture}
+        \node[white] at (0,0) {%
+          \begin{tabular}{ll}
+            English & \textcolor{accent2}{Native} \\
+            Spanish & \textcolor{accent2}{Fluent} \\
+            French & \textcolor{accent2}{Intermediate} \\
+            Japanese & \textcolor{accent2}{Basic}
+          \end{tabular}
+        };
+      \end{tikzpicture}
+
+      \sidebarheading{INTERESTS}
+
+      \begin{tikzpicture}
+        \foreach \icon/\x in {☕/0, 🎮/1.2, 📚/2.4, ✈/3.6} {
+          \node[white, font=\large] at (\x,0) {\icon};
+        }
+      \end{tikzpicture}
+
+      {\color{white}\small
+      Coffee, Gaming, Reading, Travel, Photography, Hiking}
+
+    \end{minipage}
+  };
+\end{tikzpicture}
+
+% MAIN CONTENT
+\begin{tikzpicture}[remember picture, overlay]
+  \node[anchor=north west, text width=14.5cm] at ([xshift=5.5cm, yshift=-0.5cm]current page.north west) {%
+    \begin{minipage}{14.5cm}
+
+      \mainheading{PROFESSIONAL SUMMARY}
+
+      Innovative full-stack developer with 7+ years of experience building scalable web applications and leading development teams. Expertise in modern JavaScript frameworks, cloud architecture, and agile methodologies. Passionate about clean code, user experience, and continuous learning.
+
+      \mainheading{EXPERIENCE}
+
+      \experienceentry
+        {Senior Full Stack Engineer}
+        {2022 -- Present}
+        {Tech Giant Corp | Seattle, WA}
+        {
+          \begin{itemize}[leftmargin=*, nosep, label=\textcolor{accent1}{$\bullet$}]
+            \item Led team of 6 engineers developing microservices architecture serving 5M+ users
+            \item Reduced API latency by 60\% through optimization and caching strategies
+            \item Implemented real-time features using WebSockets and Redis pub/sub
+            \item Mentored junior developers and conducted technical interviews
+            \item Migrated legacy monolith to containerized microservices on Kubernetes
+          \end{itemize}
+        }
+        {0.3cm}
+
+      \experienceentry
+        {Full Stack Developer}
+        {2020 -- 2022}
+        {Innovative Startup | San Francisco, CA}
+        {
+          \begin{itemize}[leftmargin=*, nosep, label=\textcolor{accent1}{$\bullet$}]
+            \item Built SaaS platform from scratch using React, Node.js, and PostgreSQL
+            \item Designed and implemented RESTful APIs with comprehensive documentation
+            \item Achieved 99.9\% uptime through robust error handling and monitoring
+            \item Integrated third-party APIs including Stripe, SendGrid, and Twilio
+          \end{itemize}
+        }
+        {0.3cm}
+
+      \experienceentry
+        {Software Engineer}
+        {2017 -- 2020}
+        {Digital Agency | New York, NY}
+        {
+          \begin{itemize}[leftmargin=*, nosep, label=\textcolor{accent1}{$\bullet$}]
+            \item Developed 15+ client websites using modern web technologies
+            \item Implemented responsive designs with pixel-perfect accuracy
+            \item Optimized website performance achieving 95+ Lighthouse scores
+            \item Collaborated with designers and project managers in agile environment
+          \end{itemize}
+        }
+        {0.2cm}
+
+      \mainheading{KEY PROJECTS}
+
+      \begin{minipage}[t]{0.48\textwidth}
+        \begin{tikzpicture}
+          \node[rectangle, rounded corners, fill=white, drop shadow,
+                minimum width=6.5cm, minimum height=3cm, align=left] at (0,0) {%
+            \begin{minipage}{6cm}
+              \textbf{\color{sidebar}\large E-Commerce Platform}\\[0.1cm]
+              \textcolor{textlight}{\small Full-stack marketplace application}\\[0.2cm]
+
+              {\small
+              • Handles 100K+ daily transactions\\
+              • Real-time inventory management\\
+              • Advanced search with Elasticsearch\\
+              • Payment processing with Stripe\\[0.2cm]
+
+              \textcolor{accent1}{\textbf{Tech:}} React, Node.js, PostgreSQL, Redis
+              }
+            \end{minipage}
+          };
+        \end{tikzpicture}
+      \end{minipage}
+      \hfill
+      \begin{minipage}[t]{0.48\textwidth}
+        \begin{tikzpicture}
+          \node[rectangle, rounded corners, fill=white, drop shadow,
+                minimum width=6.5cm, minimum height=3cm, align=left] at (0,0) {%
+            \begin{minipage}{6cm}
+              \textbf{\color{sidebar}\large Real-Time Collaboration Tool}\\[0.1cm]
+              \textcolor{textlight}{\small WebRTC-based video platform}\\[0.2cm]
+
+              {\small
+              • 50K+ concurrent users supported\\
+              • Screen sharing and whiteboard\\
+              • End-to-end encryption\\
+              • Cloud recording with AWS\\[0.2cm]
+
+              \textcolor{accent1}{\textbf{Tech:}} Vue.js, WebRTC, WebSockets, AWS
+              }
+            \end{minipage}
+          };
+        \end{tikzpicture}
+      \end{minipage}
+
+      \vspace{0.5cm}
+
+      \mainheading{PROFICIENCY LEVELS}
+
+      \begin{center}
+        \skillcircle{JavaScript}{95}
+        \hspace{0.3cm}
+        \skillcircle{React}{90}
+        \hspace{0.3cm}
+        \skillcircle{Node.js}{88}
+        \hspace{0.3cm}
+        \skillcircle{TypeScript}{85}
+        \hspace{0.3cm}
+        \skillcircle{Python}{80}
+        \hspace{0.3cm}
+        \skillcircle{Docker}{82}
+      \end{center}
+
+      \vspace{0.3cm}
+
+      \mainheading{EDUCATION \& CERTIFICATIONS}
+
+      \begin{minipage}[t]{0.58\textwidth}
+        \textbf{\color{sidebar}Bachelor of Science in Computer Science}\\
+        University of California, Berkeley\\
+        2013 -- 2017 | GPA: 3.8/4.0\\
+        \textit{Honors: Magna Cum Laude}
+      \end{minipage}
+      \hfill
+      \begin{minipage}[t]{0.38\textwidth}
+        {\small
+        \textbf{\color{accent1}Certifications}
+        \begin{itemize}[leftmargin=*, nosep]
+          \item AWS Solutions Architect
+          \item Google Cloud Professional
+          \item Certified Kubernetes Admin
+          \item MongoDB Developer
+        \end{itemize}
+        }
+      \end{minipage}
+
+      \vspace{0.3cm}
+
+      \mainheading{ACHIEVEMENTS \& AWARDS}
+
+      \begin{multicols}{2}
+        \begin{itemize}[leftmargin=*, nosep, label=\textcolor{accent2}{★}]
+          \item Employee of the Year 2023
+          \item Hackathon Winner - TechCrunch Disrupt 2022
+          \item Best Innovation Award 2021
+          \item Published 3 technical articles
+          \item Open source contributor (5K+ GitHub stars)
+          \item Conference speaker (ReactConf 2023)
+        \end{itemize}
+      \end{multicols}
+
+    \end{minipage}
+  };
+\end{tikzpicture}
+
+\end{document}

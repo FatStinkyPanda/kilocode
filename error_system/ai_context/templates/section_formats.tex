@@ -1,0 +1,463 @@
+% Section Formatting Collection
+% Various section header and content formatting styles
+
+% ====================
+% Section Style 1: Bold with Horizontal Rule
+% ====================
+\newcommand{\sectionone}[1]{%
+  \vspace{0.3cm}
+  {\large\bfseries #1}\\
+  \vspace{0.1cm}
+  \hrule height 0.5pt
+  \vspace{0.2cm}
+}
+
+% Usage:
+% \sectionone{EXPERIENCE}
+
+
+% ====================
+% Section Style 2: Colored with Thick Line
+% ====================
+\newcommand{\sectiontwo}[1]{%
+  \vspace{0.3cm}
+  {\large\bfseries\color{blue!70!black} #1}\\[0.05cm]
+  {\color{blue!60}\hrule height 2pt}
+  \vspace{0.2cm}
+}
+
+% Usage:
+% \sectiontwo{EDUCATION}
+
+
+% ====================
+% Section Style 3: Uppercase with Bottom Border
+% ====================
+\newcommand{\sectionthree}[1]{%
+  \vspace{0.3cm}
+  {\large\bfseries\MakeUppercase{#1}}
+  \vspace{0.1cm}
+  \hrule height 1pt
+  \vspace{0.2cm}
+}
+
+% Usage:
+% \sectionthree{Skills}
+
+
+% ====================
+% Section Style 4: Colored Background Box
+% ====================
+\newcommand{\sectionfour}[1]{%
+  % Requires: tikz, xcolor
+  \vspace{0.3cm}
+  \begin{tikzpicture}
+    \node[rectangle, fill=blue!20, minimum width=\textwidth,
+          minimum height=0.8cm, anchor=west, font=\large\bfseries] at (0,0)
+          {\hspace{0.2cm}#1};
+  \end{tikzpicture}
+  \vspace{0.2cm}
+}
+
+% Usage:
+% \sectionfour{PROJECTS}
+
+
+% ====================
+% Section Style 5: Left Accent Bar
+% ====================
+\newcommand{\sectionfive}[1]{%
+  % Requires: tikz, xcolor
+  \vspace{0.3cm}
+  \begin{tikzpicture}
+    \fill[blue!60] (0,0) rectangle (0.2cm, 0.6cm);
+    \node[anchor=west, font=\large\bfseries] at (0.4cm, 0.3cm) {#1};
+  \end{tikzpicture}
+  \vspace{0.2cm}
+}
+
+% Usage:
+% \sectionfive{CERTIFICATIONS}
+
+
+% ====================
+% Section Style 6: Centered with Lines
+% ====================
+\newcommand{\sectionsix}[1]{%
+  \vspace{0.3cm}
+  \begin{center}
+    \begin{tikzpicture}
+      \draw[gray, line width=1pt] (0,0) -- (2,0);
+      \node at (3.5,0) {\large\bfseries #1};
+      \draw[gray, line width=1pt] (5,0) -- (7,0);
+    \end{tikzpicture}
+  \end{center}
+  \vspace{0.2cm}
+}
+
+% Usage:
+% \sectionsix{PUBLICATIONS}
+
+
+% ====================
+% Section Style 7: Numbered Sections
+% ====================
+\newcounter{sectioncounter}
+\newcommand{\sectionseven}[1]{%
+  \stepcounter{sectioncounter}
+  \vspace{0.3cm}
+  {\large\bfseries\color{blue!70!black}\thesectioncounter. #1}\\
+  \vspace{0.1cm}
+  {\color{gray!50}\hrule height 0.5pt}
+  \vspace{0.2cm}
+}
+
+% Usage:
+% \sectionseven{Professional Experience}
+
+
+% ====================
+% Section Style 8: Minimal with Color
+% ====================
+\newcommand{\sectioneight}[1]{%
+  \vspace{0.3cm}
+  {\Large\bfseries\color{purple!70!black} #1}
+  \vspace{0.2cm}
+}
+
+% Usage:
+% \sectioneight{AWARDS}
+
+
+% ====================
+% Experience Entry Style 1: Standard
+% ====================
+\newcommand{\experienceone}[4]{%
+  % #1: Job title, #2: Date, #3: Company, #4: Location
+  \textbf{#1} \hfill \textit{#2}\\
+  \textit{#3} \hfill #4\\
+  \vspace{0.1cm}
+}
+
+% Usage:
+% \experienceone{Software Engineer}{Jan 2020 -- Present}{Tech Company}{San Francisco, CA}
+
+
+% ====================
+% Experience Entry Style 2: Bold Company
+% ====================
+\newcommand{\experiencetwo}[4]{%
+  % #1: Company, #2: Job title, #3: Date, #4: Location
+  \textbf{#1} \hfill #3\\
+  \textit{#2} \hfill \textit{#4}\\
+  \vspace{0.1cm}
+}
+
+% Usage:
+% \experiencetwo{Google LLC}{Senior Software Engineer}{2021 -- Present}{Mountain View, CA}
+
+
+% ====================
+% Experience Entry Style 3: Colored Elements
+% ====================
+\newcommand{\experiencethree}[4]{%
+  % #1: Job title, #2: Company, #3: Date, #4: Location
+  {\color{blue!80!black}\textbf{#1}} \hfill {\color{gray}#3}\\
+  #2 \hfill #4\\
+  \vspace{0.1cm}
+}
+
+% Usage:
+% \experiencethree{Product Manager}{Amazon}{2019 -- 2021}{Seattle, WA}
+
+
+% ====================
+% Education Entry Style 1: Degree First
+% ====================
+\newcommand{\educationone}[4]{%
+  % #1: Degree, #2: Field, #3: University, #4: Year
+  \textbf{#1 in #2} \hfill #4\\
+  \textit{#3}\\
+  \vspace{0.15cm}
+}
+
+% Usage:
+% \educationone{Bachelor of Science}{Computer Science}{MIT}{2015 -- 2019}
+
+
+% ====================
+% Education Entry Style 2: University First
+% ====================
+\newcommand{\educationtwo}[5]{%
+  % #1: University, #2: Degree, #3: Field, #4: Year, #5: GPA
+  \textbf{#1} \hfill #4\\
+  #2 in #3\\
+  GPA: #5\\
+  \vspace{0.15cm}
+}
+
+% Usage:
+% \educationtwo{Stanford University}{Master of Science}{Artificial Intelligence}{2019 -- 2021}{3.9/4.0}
+
+
+% ====================
+% Skill Category Style 1: Bold Header with List
+% ====================
+\newcommand{\skillcategory}[2]{%
+  % #1: Category name, #2: Skills list
+  \textbf{#1:} #2\\
+  \vspace{0.1cm}
+}
+
+% Usage:
+% \skillcategory{Programming Languages}{Python, JavaScript, Java, C++}
+
+
+% ====================
+% Skill Category Style 2: Two Column Layout
+% ====================
+\newcommand{\skilltwocolumn}[2]{%
+  \begin{minipage}[t]{0.48\textwidth}
+    #1
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.48\textwidth}
+    #2
+  \end{minipage}
+  \vspace{0.2cm}
+}
+
+% Usage:
+% \skilltwocolumn{
+%   \skillcategory{Frontend}{React, Vue, Angular}
+% }{
+%   \skillcategory{Backend}{Node.js, Django, Spring}
+% }
+
+
+% ====================
+% Project Entry Style 1: Title with Link
+% ====================
+\newcommand{\projectone}[3]{%
+  % #1: Project name, #2: URL, #3: Description
+  \textbf{\href{#2}{#1}}\\
+  #3\\
+  \vspace{0.2cm}
+}
+
+% Usage:
+% \projectone{E-Commerce Platform}{https://github.com/user/project}{Built scalable platform using MERN stack.}
+
+
+% ====================
+% Project Entry Style 2: Title with Tech Stack
+% ====================
+\newcommand{\projecttwo}[3]{%
+  % #1: Project name, #2: Description, #3: Technologies
+  \textbf{\color{blue!70!black}#1}\\
+  #2\\
+  \textit{Technologies: #3}\\
+  \vspace{0.2cm}
+}
+
+% Usage:
+% \projecttwo{AI Chatbot}{Developed chatbot using GPT-4 API}{Python, FastAPI, React}
+
+
+% ====================
+% Achievement/Award Entry
+% ====================
+\newcommand{\achievement}[3]{%
+  % #1: Award name, #2: Organization, #3: Year
+  \textbf{#1} \hfill #3\\
+  \textit{#2}\\
+  \vspace{0.15cm}
+}
+
+% Usage:
+% \achievement{Employee of the Year}{Tech Company Inc.}{2023}
+
+
+% ====================
+% Publication Entry (Simple)
+% ====================
+\newcommand{\publicationsimple}[4]{%
+  % #1: Authors, #2: Title, #3: Journal/Conference, #4: Year
+  #1, ``#2,'' \textit{#3}, #4.\\
+  \vspace{0.15cm}
+}
+
+% Usage:
+% \publicationsimple{Smith, J., Doe, J.}{Novel ML Algorithm}{Journal of AI Research}{2023}
+
+
+% ====================
+% Certification Entry
+% ====================
+\newcommand{\certification}[3]{%
+  % #1: Certification name, #2: Issuer, #3: Date
+  \textbf{#1}\\
+  #2 \hfill \textit{#3}\\
+  \vspace{0.15cm}
+}
+
+% Usage:
+% \certification{AWS Certified Solutions Architect}{Amazon Web Services}{June 2023}
+
+
+% ====================
+% Two-Column Content Layout
+% ====================
+\newcommand{\twocolumncontent}[2]{%
+  % #1: Left column content, #2: Right column content
+  \begin{minipage}[t]{0.30\textwidth}
+    #1
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.65\textwidth}
+    #2
+  \end{minipage}
+}
+
+% Usage:
+% \twocolumncontent{
+%   Left sidebar content (skills, contact, etc.)
+% }{
+%   Main content (experience, education, etc.)
+% }
+
+
+% ====================
+% Timeline Entry (with visual element)
+% ====================
+\newcommand{\timelineentry}[3]{%
+  % #1: Date, #2: Title, #3: Description
+  % Requires: tikz
+  \begin{tikzpicture}
+    \fill[blue!60] (0,0.2) circle (0.1cm);
+    \draw[blue!60, line width=1pt] (0,0.2) -- (0.3,0.2);
+    \node[anchor=west] at (0.4,0.4) {\textbf{#2}};
+    \node[anchor=west, color=gray] at (0.4,0) {\textit{#1}};
+  \end{tikzpicture}\\
+  #3\\
+  \vspace{0.2cm}
+}
+
+% Usage:
+% \timelineentry{Jan 2020}{Started at Company}{Led development of key features.}
+
+
+% ====================
+% Sidebar Section (for two-column layouts)
+% ====================
+\newcommand{\sidebarsection}[1]{%
+  \vspace{0.3cm}
+  {\large\bfseries\color{white} #1}\\
+  {\color{blue!40}\hrule height 1pt}
+  \vspace{0.2cm}
+}
+
+% Usage (within sidebar):
+% \sidebarsection{SKILLS}
+
+
+% ====================
+% Contact Info Block
+% ====================
+\newcommand{\contactblock}[4]{%
+  % #1: Email, #2: Phone, #3: LinkedIn, #4: GitHub
+  \begin{tabular}{l l}
+    \textbf{Email:} & \href{mailto:#1}{#1} \\
+    \textbf{Phone:} & #2 \\
+    \textbf{LinkedIn:} & \href{#3}{Profile} \\
+    \textbf{GitHub:} & \href{#4}{@username}
+  \end{tabular}
+}
+
+% Usage:
+% \contactblock{email@example.com}{555-1234}{https://linkedin.com/in/user}{https://github.com/user}
+
+
+% ====================
+% Horizontal Skill Bars
+% ====================
+\newcommand{\skillbar}[2]{%
+  % #1: Skill name, #2: Proficiency (0-5)
+  % Requires: tikz
+  \textbf{#1}\\[-0.1cm]
+  \begin{tikzpicture}
+    \fill[gray!20] (0,0) rectangle (5cm, 0.3cm);
+    \fill[blue!60] (0,0) rectangle (#2cm, 0.3cm);
+  \end{tikzpicture}
+  \vspace{0.15cm}
+}
+
+% Usage:
+% \skillbar{Python}{4.5}
+% \skillbar{JavaScript}{4.0}
+
+
+% ====================
+% Bullet Point Styling
+% ====================
+% Compact bullets (no spacing)
+\newcommand{\compactlist}{%
+  \begin{itemize}[leftmargin=*, nosep]
+}
+
+% Standard bullets (slight spacing)
+\newcommand{\standardlist}{%
+  \begin{itemize}[leftmargin=*, itemsep=2pt]
+}
+
+% Usage:
+% \compactlist
+%   \item First item
+%   \item Second item
+% \end{itemize}
+
+
+% ====================
+% Horizontal Rule Variants
+% ====================
+\newcommand{\thickrule}{%
+  \vspace{0.1cm}
+  \hrule height 1pt
+  \vspace{0.1cm}
+}
+
+\newcommand{\thinrule}{%
+  \vspace{0.1cm}
+  \hrule height 0.3pt
+  \vspace{0.1cm}
+}
+
+\newcommand{\coloredrule}[1]{%
+  \vspace{0.1cm}
+  {\color{#1}\hrule height 1pt}
+  \vspace{0.1cm}
+}
+
+% Usage:
+% \thickrule
+% \coloredrule{blue!60}
+
+
+% ====================
+% Example Full Section
+% ====================
+%
+% \sectionone{EXPERIENCE}
+%
+% \experienceone{Senior Software Engineer}{2021 -- Present}{Google}{Mountain View, CA}
+% \compactlist
+%   \item Led development of microservices architecture
+%   \item Reduced API latency by 40\%
+%   \item Mentored 5 junior engineers
+% \end{itemize}
+%
+% \experienceone{Software Engineer}{2019 -- 2021}{Startup Inc.}{San Francisco, CA}
+% \compactlist
+%   \item Built full-stack application using React and Node.js
+%   \item Implemented CI/CD pipeline
+% \end{itemize}

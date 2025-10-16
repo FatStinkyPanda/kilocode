@@ -1,0 +1,183 @@
+% Two-Column Resume Template
+% Modern, space-efficient layout with sidebar
+
+\documentclass[11pt,letterpaper]{article}
+
+% Packages
+\usepackage[letterpaper,top=0.4in,bottom=0.4in,left=0.3in,right=0.3in]{geometry}
+\usepackage{multicol}
+\usepackage{xcolor}
+\usepackage{fontspec}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage{enumitem}
+
+% Colors
+\definecolor{headercolor}{RGB}{44,62,80}
+\definecolor{accentcolor}{RGB}{52,152,219}
+\definecolor{textcolor}{RGB}{44,62,80}
+\definecolor{lightgray}{gray}{0.95}
+
+% Fonts
+\setmainfont{Calibri}[Scale=1.0]
+\newfontfamily\headerfont{Arial}[UprightFont=*-Bold]
+
+% Hyperref setup
+\hypersetup{
+  colorlinks=true,
+  linkcolor=black,
+  urlcolor=accentcolor,
+  hidelinks
+}
+
+% Custom commands
+\setlength{\parindent}{0pt}
+\setlength{\columnsep}{0.8cm}
+\pagestyle{empty}
+
+% Section formatting
+\newcommand{\resumesection}[1]{%
+  \vspace{0.2cm}
+  {\headerfont\large\color{headercolor} #1}
+  \vspace{0.1cm}
+  \hrule height 0.5pt
+  \vspace{0.15cm}
+}
+
+% Subsection (job title, degree, etc.)
+\newcommand{\resumesubsection}[4]{%
+  \textbf{#1} \hfill \textit{#2}\\
+  \textit{#3} \hfill #4\\
+  \vspace{0.1cm}
+}
+
+% Skill bar
+\newcommand{\skillbar}[2]{%
+  \textbf{#1}\\[-0.15cm]
+  \begin{tikzpicture}
+    \fill[lightgray] (0,0) rectangle (4cm, 0.3cm);
+    \fill[accentcolor] (0,0) rectangle (#2cm, 0.3cm);
+  \end{tikzpicture}
+  \vspace{0.1cm}
+}
+
+\begin{document}
+
+% Header
+\begin{center}
+  {\Huge\headerfont\color{headercolor} JOHN DOE}\\[5pt]
+  {\large\color{accentcolor} SOFTWARE ENGINEER}\\[8pt]
+  \href{mailto:john.doe@email.com}{john.doe@email.com} $|$
+  \href{tel:+15551234567}{(555) 123-4567} $|$
+  \href{https://linkedin.com/in/johndoe}{LinkedIn} $|$
+  \href{https://github.com/johndoe}{GitHub}
+\end{center}
+
+\vspace{0.3cm}
+
+% Two-column layout
+\begin{multicols}{2}
+
+% LEFT COLUMN
+\resumesection{PROFESSIONAL SUMMARY}
+Results-driven software engineer with 5+ years of experience developing scalable web applications. Expertise in full-stack development, cloud architecture, and agile methodologies.
+
+\resumesection{SKILLS}
+
+\textbf{Programming Languages}
+\begin{itemize}[leftmargin=*, nosep]
+  \item Python, JavaScript, TypeScript
+  \item Java, C++, Go
+  \item SQL, HTML/CSS
+\end{itemize}
+
+\vspace{0.2cm}
+
+\textbf{Frameworks \& Libraries}
+\begin{itemize}[leftmargin=*, nosep]
+  \item React, Angular, Vue.js
+  \item Node.js, Express
+  \item Django, Flask, FastAPI
+  \item Spring Boot
+\end{itemize}
+
+\vspace{0.2cm}
+
+\textbf{Tools \& Technologies}
+\begin{itemize}[leftmargin=*, nosep]
+  \item Git, Docker, Kubernetes
+  \item AWS, Azure, GCP
+  \item PostgreSQL, MongoDB
+  \item Jenkins, CircleCI
+\end{itemize}
+
+\resumesection{EDUCATION}
+
+\textbf{Bachelor of Science}\\
+Computer Science\\
+University Name\\
+2015 -- 2019\\
+GPA: 3.8/4.0
+
+\vspace{0.2cm}
+
+\textbf{Certifications}
+\begin{itemize}[leftmargin=*, nosep]
+  \item AWS Certified Solutions Architect
+  \item Google Cloud Professional
+  \item Certified Kubernetes Admin
+\end{itemize}
+
+\columnbreak
+
+% RIGHT COLUMN
+\resumesection{PROFESSIONAL EXPERIENCE}
+
+\resumesubsection{Senior Software Engineer}{Jan 2022 -- Present}{Tech Company Inc.}{San Francisco, CA}
+\begin{itemize}[leftmargin=*, nosep]
+  \item Led development of microservices architecture serving 1M+ daily users
+  \item Reduced API response time by 40\% through optimization and caching strategies
+  \item Mentored team of 5 junior engineers on best practices and code reviews
+  \item Implemented CI/CD pipeline reducing deployment time by 60\%
+\end{itemize}
+
+\vspace{0.2cm}
+
+\resumesubsection{Software Engineer}{Jun 2019 -- Dec 2021}{StartUp Corp}{San Francisco, CA}
+\begin{itemize}[leftmargin=*, nosep]
+  \item Built full-stack web application using React and Node.js
+  \item Designed and implemented RESTful APIs handling 100K+ requests daily
+  \item Collaborated with product team to define technical requirements
+  \item Reduced bug count by 35\% through comprehensive testing strategies
+\end{itemize}
+
+\vspace{0.2cm}
+
+\resumesubsection{Software Engineering Intern}{Summer 2018}{Big Tech Co}{Seattle, WA}
+\begin{itemize}[leftmargin=*, nosep]
+  \item Developed internal dashboard for monitoring system performance
+  \item Automated data processing workflows saving 10 hours per week
+  \item Participated in agile development and daily standups
+\end{itemize}
+
+\resumesection{PROJECTS}
+
+\textbf{\href{https://project1.com}{E-Commerce Platform}}\\
+Built scalable e-commerce platform using MERN stack. Features include user authentication, payment processing, and admin dashboard.\\
+\textit{Tech: React, Node.js, MongoDB, Stripe}
+
+\vspace{0.2cm}
+
+\textbf{\href{https://project2.com}{AI Content Generator}}\\
+Developed AI-powered content generation tool using GPT-4 API. Serves 5K+ monthly active users.\\
+\textit{Tech: Python, FastAPI, React, OpenAI}
+
+\vspace{0.2cm}
+
+\textbf{\href{https://project3.com}{Real-Time Chat App}}\\
+Created real-time messaging application with WebSocket support and end-to-end encryption.\\
+\textit{Tech: Node.js, Socket.io, React, PostgreSQL}
+
+\end{multicols}
+
+\end{document}
