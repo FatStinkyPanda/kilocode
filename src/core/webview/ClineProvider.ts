@@ -649,6 +649,15 @@ export class ClineProvider
 				this.currentWorkspacePath,
 			)
 
+			// Auto-create project files on startup if enabled
+			if (projectContinuanceEnabled && projectContinuanceAutoCreateFiles) {
+				this.projectContinuanceService.createDefaultFiles().catch((error) => {
+					this.log(
+						`[ProjectContinuance] Error creating default files on startup: ${error instanceof Error ? error.message : String(error)}`,
+					)
+				})
+			}
+
 			// Listen for context ready
 			this.projectContinuanceService.on("contextReady", async (prompt: string) => {
 				this.log("[ProjectContinuance] Context ready, sending continuation prompt")
