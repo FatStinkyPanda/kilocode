@@ -784,6 +784,43 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Generate AI-readable error context files"
+				},
+				"kilo-code.projectCompletion.enabled": {
+					"type": "boolean",
+					"default": true,
+					"description": "Enable intelligent project completion validation system"
+				},
+				"kilo-code.projectCompletion.stopContinuanceWhenComplete": {
+					"type": "boolean",
+					"default": true,
+					"description": "Automatically stop automatic project continuance when project is validated as 100% complete"
+				},
+				"kilo-code.projectCompletion.requireAllTodosComplete": {
+					"type": "boolean",
+					"default": true,
+					"description": "Project is incomplete if any TODOs remain unchecked in TODO.md"
+				},
+				"kilo-code.projectCompletion.requireAllRequirementsMet": {
+					"type": "boolean",
+					"default": true,
+					"description": "Project is incomplete if any documented requirements are unmet"
+				},
+				"kilo-code.projectCompletion.checkForPlaceholders": {
+					"type": "boolean",
+					"default": true,
+					"description": "Scan codebase for TODO, FIXME, and other placeholder markers"
+				},
+				"kilo-code.projectCompletion.checkForSimpleImplementations": {
+					"type": "boolean",
+					"default": true,
+					"description": "Detect simple/incomplete implementations that don't meet full expectations"
+				},
+				"kilo-code.projectCompletion.minQualityScore": {
+					"type": "number",
+					"default": 95,
+					"minimum": 0,
+					"maximum": 100,
+					"description": "Minimum completion percentage required (0-100). Below this threshold, project is considered incomplete."
 				}
 			}
 		},

@@ -213,6 +213,15 @@ export const globalSettingsSchema = z.object({
 	errorTrackingIntelligentGrouping: z.boolean().optional(),
 	errorTrackingAiContext: z.boolean().optional(),
 	// kilocode_change end
+	// kilocode_change start: Project completion validation settings
+	projectCompletionEnabled: z.boolean().optional(),
+	projectCompletionStopContinuance: z.boolean().optional(),
+	projectCompletionRequireAllTodos: z.boolean().optional(),
+	projectCompletionRequireAllRequirements: z.boolean().optional(),
+	projectCompletionCheckPlaceholders: z.boolean().optional(),
+	projectCompletionCheckSimpleImplementations: z.boolean().optional(),
+	projectCompletionMinQualityScore: z.number().optional(),
+	// kilocode_change end
 })
 
 export type GlobalSettings = z.infer<typeof globalSettingsSchema>

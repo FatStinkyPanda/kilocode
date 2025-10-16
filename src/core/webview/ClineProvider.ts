@@ -110,6 +110,7 @@ import { IdleDetectionService } from "../../services/idle-detection/IdleDetectio
 import { AutoGitService } from "../../services/auto-git/AutoGitService"
 import { ProjectContinuanceService } from "../../services/project-continuance/ProjectContinuanceService"
 import { ErrorTrackingService } from "../../services/error-tracking/ErrorTrackingService"
+import { ProjectCompletionService } from "../../services/project-completion/ProjectCompletionService"
 
 export type ClineProviderState = Awaited<ReturnType<ClineProvider["getState"]>>
 // kilocode_change end
@@ -171,6 +172,7 @@ export class ClineProvider
 	public autoGitService?: AutoGitService
 	public projectContinuanceService?: ProjectContinuanceService
 	public errorTrackingService?: ErrorTrackingService
+	public projectCompletionService?: ProjectCompletionService
 
 	constructor(
 		readonly context: vscode.ExtensionContext,
@@ -459,6 +461,28 @@ export class ClineProvider
 					const autoContinueEnabled = this.getGlobalState("idleAutoContinueProject") ?? false
 					const projectContinuanceEnabled = this.projectContinuanceService?.config?.enabled ?? false
 					const continueInCurrentTask = this.getGlobalState("idleContinueInCurrentTask") ?? true
+
+					// Check if project completion validation is enabled and should stop continuance
+					const projectCompletionEnabled = this.projectCompletionService?.config?.enabled ?? false
+					if (autoContinueEnabled && projectContinuanceEnabled && projectCompletionEnabled) {
+						this.log("[ProjectCompletion] Checking if project is complete before continuing...")
+						const shouldStop = await this.projectCompletionService?.shouldStopContinuance()
+						if (shouldStop) {
+							this.log("[ProjectCompletion] 🎉 Project is complete! Stopping automatic continuance.")
+							vscode.window
+								.showInformationMessage(
+									"🎉 Project is 100% complete and production ready! Automatic continuance has been stopped.",
+									"View Report",
+								)
+								.then((selection) => {
+									if (selection === "View Report") {
+										// Optionally trigger a detailed validation report
+										this.log("[ProjectCompletion] User requested detailed report")
+									}
+								})
+							return // Stop here, don't continue
+						}
+					}
 
 					// Determine which prompt to use
 					let messageToSend = prompt
@@ -764,6 +788,82 @@ export class ClineProvider
 						} else if (wasEnabled && !nowEnabled) {
 							this.errorTrackingService?.stopMonitoring()
 						}
+					}
+				}),
+			)
+			// kilocode_change end
+
+			// kilocode_change start: Initialize ProjectCompletionService
+			const projectCompletionEnabled = config.get<boolean>("projectCompletion.enabled", false)
+			const projectCompletionStopContinuance = config.get<boolean>("projectCompletion.stopContinuance", true)
+			const projectCompletionRequireAllTodos = config.get<boolean>("projectCompletion.requireAllTodos", true)
+			const projectCompletionRequireAllRequirements = config.get<boolean>(
+				"projectCompletion.requireAllRequirements",
+				true,
+			)
+			const projectCompletionCheckPlaceholders = config.get<boolean>("projectCompletion.checkPlaceholders", true)
+			const projectCompletionCheckSimpleImplementations = config.get<boolean>(
+				"projectCompletion.checkSimpleImplementations",
+				true,
+			)
+			const projectCompletionMinQualityScore = config.get<number>("projectCompletion.minQualityScore", 95)
+
+			this.projectCompletionService = ProjectCompletionService.getInstance(
+				{
+					enabled: projectCompletionEnabled,
+					stopContinuanceWhenComplete: projectCompletionStopContinuance,
+					requireAllTodosComplete: projectCompletionRequireAllTodos,
+					requireAllRequirementsMet: projectCompletionRequireAllRequirements,
+					checkForPlaceholders: projectCompletionCheckPlaceholders,
+					checkForSimpleImplementations: projectCompletionCheckSimpleImplementations,
+					minCodeQualityScore: projectCompletionMinQualityScore,
+				},
+				this.outputChannel,
+				this.currentWorkspacePath,
+			)
+
+			// Listen for validation complete
+			this.projectCompletionService.on("validationComplete", (result) => {
+				if (result.isComplete) {
+					this.log(`[ProjectCompletion] ✅ Project is ${result.completionPercentage}% complete!`)
+					vscode.window.showInformationMessage(
+						`Project Completion: ${result.completionPercentage}% - ${result.summary}`,
+					)
+				} else {
+					this.log(
+						`[ProjectCompletion] Project is ${result.completionPercentage}% complete (${result.issues.length} issues found)`,
+					)
+				}
+			})
+
+			// Set up configuration change listener for ProjectCompletion
+			this.disposables.push(
+				vscode.workspace.onDidChangeConfiguration((e) => {
+					if (
+						e.affectsConfiguration(`${Package.name}.projectCompletion.enabled`) ||
+						e.affectsConfiguration(`${Package.name}.projectCompletion.stopContinuance`) ||
+						e.affectsConfiguration(`${Package.name}.projectCompletion.requireAllTodos`) ||
+						e.affectsConfiguration(`${Package.name}.projectCompletion.requireAllRequirements`) ||
+						e.affectsConfiguration(`${Package.name}.projectCompletion.checkPlaceholders`) ||
+						e.affectsConfiguration(`${Package.name}.projectCompletion.checkSimpleImplementations`) ||
+						e.affectsConfiguration(`${Package.name}.projectCompletion.minQualityScore`)
+					) {
+						const config = vscode.workspace.getConfiguration(Package.name)
+						this.projectCompletionService?.updateConfig({
+							enabled: config.get<boolean>("projectCompletion.enabled", false),
+							stopContinuanceWhenComplete: config.get<boolean>("projectCompletion.stopContinuance", true),
+							requireAllTodosComplete: config.get<boolean>("projectCompletion.requireAllTodos", true),
+							requireAllRequirementsMet: config.get<boolean>(
+								"projectCompletion.requireAllRequirements",
+								true,
+							),
+							checkForPlaceholders: config.get<boolean>("projectCompletion.checkPlaceholders", true),
+							checkForSimpleImplementations: config.get<boolean>(
+								"projectCompletion.checkSimpleImplementations",
+								true,
+							),
+							minCodeQualityScore: config.get<number>("projectCompletion.minQualityScore", 95),
+						})
 					}
 				}),
 			)
