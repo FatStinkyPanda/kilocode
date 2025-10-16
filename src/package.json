@@ -292,6 +292,11 @@
 				"command": "kilo-code.ghost.goToPreviousSuggestion",
 				"title": "%ghost.commands.goToPreviousSuggestion%",
 				"category": "%configuration.title%"
+			},
+			{
+				"command": "kilo-code.initializeProjectFiles",
+				"title": "Initialize Project Continuance Files",
+				"category": "%configuration.title%"
 			}
 		],
 		"menus": {

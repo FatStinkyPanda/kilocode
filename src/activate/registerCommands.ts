@@ -289,6 +289,62 @@ const getCommandsMap = ({ context, outputChannel }: RegisterCommandOptions): Rec
 			action: "toggleAutoApprove",
 		})
 	},
+	initializeProjectFiles: async () => {
+		const visibleProvider = getVisibleProviderOrLog(outputChannel)
+
+		if (!visibleProvider) {
+			return
+		}
+
+		const projectContinuanceService = visibleProvider.projectContinuanceService
+		if (!projectContinuanceService) {
+			vscode.window.showErrorMessage("Project Continuance service is not available")
+			return
+		}
+
+		try {
+			outputChannel.appendLine("[InitProjectFiles] Initializing project continuance files...")
+			const files = await projectContinuanceService.createDefaultFiles()
+
+			// Show success message with file locations
+			const folderPath = files.folderPath
+			const relativePath = vscode.workspace.workspaceFolders?.[0]
+				? vscode.workspace.asRelativePath(folderPath)
+				: folderPath
+
+			vscode.window
+				.showInformationMessage(
+					`Project continuance files created in: ${relativePath}`,
+					"Open Folder",
+					"Open Documentation",
+				)
+				.then((selection) => {
+					if (selection === "Open Folder") {
+						vscode.commands.executeCommand("revealFileInOS", vscode.Uri.file(folderPath))
+					} else if (selection === "Open Documentation" && files.documentationPath) {
+						vscode.workspace.openTextDocument(files.documentationPath).then((doc) => {
+							vscode.window.showTextDocument(doc)
+						})
+					}
+				})
+
+			outputChannel.appendLine(`[InitProjectFiles] Files created successfully:`)
+			outputChannel.appendLine(`  - Folder: ${folderPath}`)
+			if (files.documentationPath) {
+				outputChannel.appendLine(`  - Documentation: ${files.documentationPath}`)
+			}
+			if (files.todoPath) {
+				outputChannel.appendLine(`  - TODO: ${files.todoPath}`)
+			}
+			if (files.contextScriptPath) {
+				outputChannel.appendLine(`  - Context Script: ${files.contextScriptPath}`)
+			}
+		} catch (error) {
+			const errorMessage = `Error initializing project files: ${error instanceof Error ? error.message : String(error)}`
+			outputChannel.appendLine(`[InitProjectFiles] ${errorMessage}`)
+			vscode.window.showErrorMessage(errorMessage)
+		}
+	},
 })
 
 export const openClineInNewTab = async ({ context, outputChannel }: Omit<RegisterCommandOptions, "provider">) => {

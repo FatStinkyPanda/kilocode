@@ -71,6 +71,7 @@ export const commandIds = [
 	"handleExternalUri", // kilocode_change - for JetBrains plugin URL forwarding
 	"focusPanel",
 	"toggleAutoApprove",
+	"initializeProjectFiles", // kilocode_change - initialize project continuance files
 ] as const
 
 export type CommandId = (typeof commandIds)[number]
