@@ -173,6 +173,9 @@ export class ClineProvider
 	public projectContinuanceService?: ProjectContinuanceService
 	public errorTrackingService?: ErrorTrackingService
 	public projectCompletionService?: ProjectCompletionService
+	private autoProceedTimer?: NodeJS.Timeout
+	private autoProceedEnabled: boolean = false
+	private autoProceedDelayMs: number = 300000
 
 	constructor(
 		readonly context: vscode.ExtensionContext,
@@ -229,9 +232,11 @@ export class ClineProvider
 			const onTaskCompleted = (taskId: string, tokenUsage: any, toolUsage: any) => {
 				this.emit(RooCodeEventName.TaskCompleted, taskId, tokenUsage, toolUsage)
 				this.idleDetectionService?.notifyTaskCompletedOrMessageSent()
+				this.clearAutoProceedTimer() // kilocode_change: Clear timer on task completion
 			}
 			const onTaskAborted = async () => {
 				this.emit(RooCodeEventName.TaskAborted, instance.taskId)
+				this.clearAutoProceedTimer() // kilocode_change: Clear timer on task abort
 
 				try {
 					// Only rehydrate on genuine streaming failures.
@@ -274,9 +279,23 @@ export class ClineProvider
 			const onTaskUserMessage = (taskId: string) => {
 				this.emit(RooCodeEventName.TaskUserMessage, taskId)
 				this.idleDetectionService?.notifyUserActivity()
+				this.clearAutoProceedTimer() // kilocode_change: Clear timer when user interacts
 			}
 			const onTaskTokenUsageUpdated = (taskId: string, tokenUsage: TokenUsage) =>
 				this.emit(RooCodeEventName.TaskTokenUsageUpdated, taskId, tokenUsage)
+			// kilocode_change start: Monitor for command_output to trigger auto-proceed
+			const onTaskInteractiveState = (taskId: string) => {
+				// Check if the last message is command_output ask
+				const lastMessage = instance.clineMessages[instance.clineMessages.length - 1]
+				if (lastMessage && lastMessage.type === "ask" && lastMessage.ask === "command_output") {
+					this.log("[AutoProceed] Detected 'Proceed While Running' button, starting timer")
+					this.startAutoProceedTimer(instance)
+				} else {
+					// Clear timer if we're no longer in command_output state
+					this.clearAutoProceedTimer()
+				}
+			}
+			// kilocode_change end
 
 			// Attach the listeners.
 			instance.on(RooCodeEventName.TaskStarted, onTaskStarted)
@@ -293,6 +312,7 @@ export class ClineProvider
 			instance.on(RooCodeEventName.TaskSpawned, onTaskSpawned)
 			instance.on(RooCodeEventName.TaskUserMessage, onTaskUserMessage)
 			instance.on(RooCodeEventName.TaskTokenUsageUpdated, onTaskTokenUsageUpdated)
+			instance.on(RooCodeEventName.TaskInteractive, onTaskInteractiveState) // kilocode_change: Monitor command_output
 
 			// Store the cleanup functions for later removal.
 			this.taskEventListeners.set(instance, [
@@ -310,6 +330,7 @@ export class ClineProvider
 				() => instance.off(RooCodeEventName.TaskUnpaused, onTaskUnpaused),
 				() => instance.off(RooCodeEventName.TaskSpawned, onTaskSpawned),
 				() => instance.off(RooCodeEventName.TaskTokenUsageUpdated, onTaskTokenUsageUpdated),
+				() => instance.off(RooCodeEventName.TaskInteractive, onTaskInteractiveState), // kilocode_change
 			])
 		}
 
@@ -918,9 +939,78 @@ export class ClineProvider
 				}),
 			)
 
+			// kilocode_change start: Initialize auto-proceed settings
+			this.autoProceedEnabled = config.get<boolean>("autoProceed.enabled", false)
+			this.autoProceedDelayMs = config.get<number>("autoProceed.delayMs", 300000)
+			this.log(
+				`[AutoProceed] Initialized - enabled: ${this.autoProceedEnabled}, delay: ${this.autoProceedDelayMs}ms`,
+			)
+
+			// Listen for auto-proceed settings changes
+			this.disposables.push(
+				vscode.workspace.onDidChangeConfiguration((e) => {
+					if (
+						e.affectsConfiguration(`${Package.name}.autoProceed.enabled`) ||
+						e.affectsConfiguration(`${Package.name}.autoProceed.delayMs`)
+					) {
+						const config = vscode.workspace.getConfiguration(Package.name)
+						this.autoProceedEnabled = config.get<boolean>("autoProceed.enabled", false)
+						this.autoProceedDelayMs = config.get<number>("autoProceed.delayMs", 300000)
+						this.log(
+							`[AutoProceed] Config updated - enabled: ${this.autoProceedEnabled}, delay: ${this.autoProceedDelayMs}ms`,
+						)
+
+						// Clear any existing timer if disabled
+						if (!this.autoProceedEnabled && this.autoProceedTimer) {
+							clearTimeout(this.autoProceedTimer)
+							this.autoProceedTimer = undefined
+							this.log("[AutoProceed] Timer cleared due to disabled setting")
+						}
+					}
+				}),
+			)
+			// kilocode_change end
+
 			this.log("[IdleDetection] Service initialized and configured")
 		} catch (error) {
 			this.log(`[IdleDetection] Failed to initialize: ${error instanceof Error ? error.message : String(error)}`)
+		}
+	}
+
+	/**
+	 * Starts the auto-proceed timer for "Proceed While Running" button
+	 */
+	private startAutoProceedTimer(task: Task) {
+		// Clear any existing timer first
+		this.clearAutoProceedTimer()
+
+		if (!this.autoProceedEnabled || !task) {
+			return
+		}
+
+		this.log(
+			`[AutoProceed] Starting timer for ${this.autoProceedDelayMs}ms before auto-clicking 'Proceed While Running'`,
+		)
+
+		this.autoProceedTimer = setTimeout(() => {
+			this.log("[AutoProceed] Delay expired, automatically proceeding with command execution")
+			task.handleTerminalOperation("continue").catch((error) => {
+				this.log(
+					`[AutoProceed] Error auto-proceeding: ${error instanceof Error ? error.message : String(error)}`,
+				)
+			})
+			this.autoProceedTimer = undefined
+		}, this.autoProceedDelayMs)
+	}
+
+	/**
+	 * Clears the auto-proceed timer if it exists
+	 */
+	private clearAutoProceedTimer() {
+		if (this.autoProceedTimer) {
+			clearTimeout(this.autoProceedTimer)
+			this.autoProceedTimer = undefined
+			this.log("[AutoProceed] Timer cleared")
 		}
 	}
 

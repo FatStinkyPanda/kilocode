@@ -222,6 +222,10 @@ export const globalSettingsSchema = z.object({
 	projectCompletionCheckSimpleImplementations: z.boolean().optional(),
 	projectCompletionMinQualityScore: z.number().optional(),
 	// kilocode_change end
+	// kilocode_change start: Auto-proceed while running settings
+	autoProceedEnabled: z.boolean().optional(),
+	autoProceedDelayMs: z.number().optional(),
+	// kilocode_change end
 })
 
 export type GlobalSettings = z.infer<typeof globalSettingsSchema>

@@ -821,6 +821,18 @@
 					"minimum": 0,
 					"maximum": 100,
 					"description": "Minimum completion percentage required (0-100). Below this threshold, project is considered incomplete."
+				},
+				"kilo-code.autoProceed.enabled": {
+					"type": "boolean",
+					"default": false,
+					"description": "Automatically click the 'Proceed While Running' button after a configurable delay"
+				},
+				"kilo-code.autoProceed.delayMs": {
+					"type": "number",
+					"default": 300000,
+					"minimum": 1000,
+					"maximum": 3600000,
+					"description": "Time in milliseconds to wait before automatically clicking 'Proceed While Running' button (1000-3600000ms, default: 300000ms / 5 minutes)"
 				}
 			}
 		},
