@@ -108,6 +108,7 @@ import { getKiloCodeWrapperProperties } from "../../core/kilocode/wrapper"
 import { getKilocodeConfig, getWorkspaceProjectId, KilocodeConfig } from "../../utils/kilo-config-file" // kilocode_change
 import { IdleDetectionService } from "../../services/idle-detection/IdleDetectionService"
 import { AutoGitService } from "../../services/auto-git/AutoGitService"
+import { ProjectContinuanceService } from "../../services/project-continuance/ProjectContinuanceService"
 
 export type ClineProviderState = Awaited<ReturnType<ClineProvider["getState"]>>
 // kilocode_change end
@@ -167,6 +168,7 @@ export class ClineProvider
 	public idleDetectionService?: IdleDetectionService
 	private idleStatusBarItem?: vscode.StatusBarItem
 	public autoGitService?: AutoGitService
+	public projectContinuanceService?: ProjectContinuanceService
 
 	constructor(
 		readonly context: vscode.ExtensionContext,
@@ -449,10 +451,25 @@ export class ClineProvider
 
 			// Listen for auto-prompt ready
 			this.idleDetectionService.on("autoPromptReady", async (prompt: string) => {
-				this.log("[IdleDetection] Auto-prompt ready, sending to AI")
+				this.log("[IdleDetection] Auto-prompt ready")
 				try {
-					// Send the auto-prompt as a new task
-					await this.createTask(prompt)
+					// kilocode_change start: Check if project continuance is enabled
+					if (this.projectContinuanceService?.config?.enabled) {
+						this.log("[ProjectContinuance] Using intelligent project continuance instead of simple prompt")
+						const continuationPrompt = await this.projectContinuanceService.generateContinuationPrompt()
+						if (continuationPrompt) {
+							await this.createTask(continuationPrompt)
+						} else {
+							this.log(
+								"[ProjectContinuance] No continuation prompt generated, falling back to auto-prompt",
+							)
+							await this.createTask(prompt)
+						}
+					} else {
+						// kilocode_change end
+						// Send the auto-prompt as a new task
+						await this.createTask(prompt)
+					}
 				} catch (error) {
 					this.log(
 						`[IdleDetection] Error sending auto-prompt: ${error instanceof Error ? error.message : String(error)}`,
@@ -540,6 +557,93 @@ export class ClineProvider
 					}
 				}),
 			)
+
+			// kilocode_change start: Initialize ProjectContinuanceService
+			const projectContinuanceEnabled = config.get<boolean>("projectContinuance.enabled", false)
+			const projectContinuanceFolder = config.get<string>("projectContinuance.folder", ".kilo-project")
+			const projectContinuanceDocFileName = config.get<string>(
+				"projectContinuance.docFileName",
+				"PROJECT-DOCUMENTATION.md",
+			)
+			const projectContinuanceTodoFileName = config.get<string>("projectContinuance.todoFileName", "TODO.md")
+			const projectContinuanceContextFileName = config.get<string>(
+				"projectContinuance.contextFileName",
+				"continue-development.md",
+			)
+			const projectContinuanceAutoCreateFiles = config.get<boolean>("projectContinuance.autoCreateFiles", true)
+			const projectContinuanceAutoUpdateContext = config.get<boolean>(
+				"projectContinuance.autoUpdateContext",
+				true,
+			)
+			const projectContinuanceIncludeFileTree = config.get<boolean>("projectContinuance.includeFileTree", true)
+			const projectContinuanceMaxFileTreeDepth = config.get<number>("projectContinuance.maxFileTreeDepth", 3)
+
+			this.projectContinuanceService = ProjectContinuanceService.getInstance(
+				{
+					enabled: projectContinuanceEnabled,
+					projectFolder: projectContinuanceFolder,
+					documentationFileName: projectContinuanceDocFileName,
+					todoFileName: projectContinuanceTodoFileName,
+					contextScriptFileName: projectContinuanceContextFileName,
+					autoCreateFiles: projectContinuanceAutoCreateFiles,
+					autoUpdateContext: projectContinuanceAutoUpdateContext,
+					includeFileTree: projectContinuanceIncludeFileTree,
+					maxFileTreeDepth: projectContinuanceMaxFileTreeDepth,
+				},
+				this.outputChannel,
+				this.currentWorkspacePath,
+			)
+
+			// Listen for context ready
+			this.projectContinuanceService.on("contextReady", async (prompt: string) => {
+				this.log("[ProjectContinuance] Context ready, sending continuation prompt")
+			})
+
+			// Listen for files created
+			this.projectContinuanceService.on("filesCreated", (files) => {
+				this.log(`[ProjectContinuance] Project files created/verified in ${files.folderPath}`)
+			})
+
+			// Listen for errors
+			this.projectContinuanceService.on("error", (error) => {
+				this.log(`[ProjectContinuance] Error: ${error}`)
+			})
+
+			// Set up configuration change listener for ProjectContinuance
+			this.disposables.push(
+				vscode.workspace.onDidChangeConfiguration((e) => {
+					if (
+						e.affectsConfiguration(`${Package.name}.projectContinuance.enabled`) ||
+						e.affectsConfiguration(`${Package.name}.projectContinuance.folder`) ||
+						e.affectsConfiguration(`${Package.name}.projectContinuance.docFileName`) ||
+						e.affectsConfiguration(`${Package.name}.projectContinuance.todoFileName`) ||
+						e.affectsConfiguration(`${Package.name}.projectContinuance.contextFileName`) ||
+						e.affectsConfiguration(`${Package.name}.projectContinuance.autoCreateFiles`) ||
+						e.affectsConfiguration(`${Package.name}.projectContinuance.autoUpdateContext`) ||
+						e.affectsConfiguration(`${Package.name}.projectContinuance.includeFileTree`) ||
+						e.affectsConfiguration(`${Package.name}.projectContinuance.maxFileTreeDepth`)
+					) {
+						const config = vscode.workspace.getConfiguration(Package.name)
+						this.projectContinuanceService?.updateConfig({
+							enabled: config.get<boolean>("projectContinuance.enabled", false),
+							projectFolder: config.get<string>("projectContinuance.folder", ".kilo-project"),
+							documentationFileName: config.get<string>(
+								"projectContinuance.docFileName",
+								"PROJECT-DOCUMENTATION.md",
+							),
+							todoFileName: config.get<string>("projectContinuance.todoFileName", "TODO.md"),
+							contextScriptFileName: config.get<string>(
+								"projectContinuance.contextFileName",
+								"continue-development.md",
+							),
+							autoCreateFiles: config.get<boolean>("projectContinuance.autoCreateFiles", true),
+							autoUpdateContext: config.get<boolean>("projectContinuance.autoUpdateContext", true),
+							includeFileTree: config.get<boolean>("projectContinuance.includeFileTree", true),
+							maxFileTreeDepth: config.get<number>("projectContinuance.maxFileTreeDepth", 3),
+						})
+					}
+				}),
+			)
 			// kilocode_change end
 
 			// Set up configuration change listener
@@ -598,6 +702,11 @@ export class ClineProvider
 		// kilocode_change start: Update auto-git workspace
 		if (this.autoGitService && workspacePath) {
 			this.autoGitService.updateWorkspacePath(workspacePath)
+		}
+		// kilocode_change end
+		// kilocode_change start: Update project continuance workspace
+		if (this.projectContinuanceService && workspacePath) {
+			this.projectContinuanceService.updateWorkspacePath(workspacePath)
 		}
 		// kilocode_change end
 	}
@@ -908,6 +1017,8 @@ export class ClineProvider
 		this.idleDetectionService = undefined
 		this.autoGitService?.dispose() // kilocode_change
 		this.autoGitService = undefined // kilocode_change
+		this.projectContinuanceService?.dispose() // kilocode_change
+		this.projectContinuanceService = undefined // kilocode_change
 		this.log("Disposed all disposables")
 		ClineProvider.activeInstances.delete(this)
 

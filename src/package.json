@@ -680,6 +680,53 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Automatically create a new branch if there are conflicts with the remote repository"
+				},
+				"kilo-code.projectContinuance.enabled": {
+					"type": "boolean",
+					"default": false,
+					"description": "Enable automatic project continuance when idle - intelligently reads project documentation, TODOs, and context to continue development"
+				},
+				"kilo-code.projectContinuance.folder": {
+					"type": "string",
+					"default": ".kilo-project",
+					"description": "Folder containing project documentation, TODOs, and context files (relative to workspace root)"
+				},
+				"kilo-code.projectContinuance.docFileName": {
+					"type": "string",
+					"default": "PROJECT-DOCUMENTATION.md",
+					"description": "Name of the main project documentation file (will search workspace if not in project folder)"
+				},
+				"kilo-code.projectContinuance.todoFileName": {
+					"type": "string",
+					"default": "TODO.md",
+					"description": "Name of the project TODO file"
+				},
+				"kilo-code.projectContinuance.contextFileName": {
+					"type": "string",
+					"default": "continue-development.md",
+					"description": "Name of the auto-generated context refresh script file"
+				},
+				"kilo-code.projectContinuance.autoCreateFiles": {
+					"type": "boolean",
+					"default": true,
+					"description": "Automatically create project folder and default files if they don't exist"
+				},
+				"kilo-code.projectContinuance.autoUpdateContext": {
+					"type": "boolean",
+					"default": true,
+					"description": "Automatically update the context refresh script when continuing development"
+				},
+				"kilo-code.projectContinuance.includeFileTree": {
+					"type": "boolean",
+					"default": true,
+					"description": "Include project file tree in the context refresh script"
+				},
+				"kilo-code.projectContinuance.maxFileTreeDepth": {
+					"type": "number",
+					"default": 3,
+					"minimum": 1,
+					"maximum": 10,
+					"description": "Maximum depth for file tree generation"
 				}
 			}
 		},

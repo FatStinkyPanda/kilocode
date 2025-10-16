@@ -190,6 +190,17 @@ export const globalSettingsSchema = z.object({
 	autoGitCommitOnTaskComplete: z.boolean().optional(),
 	autoGitCreateBranchOnConflict: z.boolean().optional(),
 	// kilocode_change end
+	// kilocode_change start: Project continuance settings
+	projectContinuanceEnabled: z.boolean().optional(),
+	projectContinuanceFolder: z.string().optional(),
+	projectContinuanceDocFileName: z.string().optional(),
+	projectContinuanceTodoFileName: z.string().optional(),
+	projectContinuanceContextFileName: z.string().optional(),
+	projectContinuanceAutoCreateFiles: z.boolean().optional(),
+	projectContinuanceAutoUpdateContext: z.boolean().optional(),
+	projectContinuanceIncludeFileTree: z.boolean().optional(),
+	projectContinuanceMaxFileTreeDepth: z.number().optional(),
+	// kilocode_change end
 })
 
 export type GlobalSettings = z.infer<typeof globalSettingsSchema>
