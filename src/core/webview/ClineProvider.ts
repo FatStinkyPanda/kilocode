@@ -412,6 +412,11 @@ export class ClineProvider
 		try {
 			const config = vscode.workspace.getConfiguration(Package.name)
 			const enabled = config.get<boolean>("idleDetection.enabled", false)
+			const detectionMethod = config.get<string>("idleDetection.detectionMethod", "auto") as
+				| "auto"
+				| "button"
+				| "events"
+				| "hybrid"
 			const idleTimeoutMs = config.get<number>("idleDetection.idleTimeoutMs", 5000)
 			const enableNotifications = config.get<boolean>("idleDetection.enableNotifications", true)
 			const autoPromptFolder = config.get<string>("idleDetection.autoPromptFolder", ".kilocode-prompts")
@@ -420,6 +425,7 @@ export class ClineProvider
 			this.idleDetectionService = IdleDetectionService.getInstance(
 				{
 					enabled,
+					detectionMethod,
 					idleTimeoutMs,
 					enableNotifications,
 					autoPromptFolder,
@@ -462,6 +468,7 @@ export class ClineProvider
 				vscode.workspace.onDidChangeConfiguration((e) => {
 					if (
 						e.affectsConfiguration(`${Package.name}.idleDetection.enabled`) ||
+						e.affectsConfiguration(`${Package.name}.idleDetection.detectionMethod`) ||
 						e.affectsConfiguration(`${Package.name}.idleDetection.idleTimeoutMs`) ||
 						e.affectsConfiguration(`${Package.name}.idleDetection.enableNotifications`) ||
 						e.affectsConfiguration(`${Package.name}.idleDetection.autoPromptFolder`) ||
@@ -473,6 +480,11 @@ export class ClineProvider
 
 						this.idleDetectionService?.updateConfig({
 							enabled,
+							detectionMethod: config.get<string>("idleDetection.detectionMethod", "auto") as
+								| "auto"
+								| "button"
+								| "events"
+								| "hybrid",
 							idleTimeoutMs: config.get<number>("idleDetection.idleTimeoutMs", 5000),
 							enableNotifications: config.get<boolean>("idleDetection.enableNotifications", true),
 							autoPromptFolder: config.get<string>("idleDetection.autoPromptFolder", ".kilocode-prompts"),
@@ -575,8 +587,14 @@ export class ClineProvider
 	async addClineToStack(task: Task) {
 		// Add this cline instance into the stack that represents the order of
 		// all the called tasks.
+		const wasEmpty = this.clineStack.length === 0
 		this.clineStack.push(task)
 		task.emit(RooCodeEventName.TaskFocused)
+
+		// If stack was empty before (button was visible), notify it's now hidden
+		if (wasEmpty) {
+			this.idleDetectionService?.notifyButtonHidden()
+		}
 
 		// Perform special setup provider specific tasks.
 		await this.performPreparationTasks(task)
@@ -641,6 +659,11 @@ export class ClineProvider
 			// Make sure no reference kept, once promises end it will be
 			// garbage collected.
 			task = undefined
+		}
+
+		// Check if stack is now empty (Start New Task button visible)
+		if (this.clineStack.length === 0) {
+			this.idleDetectionService?.notifyButtonVisible()
 		}
 	}
 

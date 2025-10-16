@@ -3,8 +3,11 @@ import * as path from "path"
 import * as fs from "fs/promises"
 import EventEmitter from "events"
 
+export type IdleDetectionMethod = "auto" | "button" | "events" | "hybrid"
+
 export interface IdleDetectionConfig {
 	enabled: boolean
+	detectionMethod: IdleDetectionMethod
 	idleTimeoutMs: number
 	enableNotifications: boolean
 	autoPromptFolder: string
@@ -33,6 +36,7 @@ export class IdleDetectionService extends EventEmitter {
 	private outputChannel: vscode.OutputChannel
 	private workspacePath: string | undefined
 	private currentStatus: IdleStatus = "active"
+	private lastIdleDetectionSource: "button" | "events" | "none" = "none"
 
 	private constructor(config: IdleDetectionConfig, outputChannel: vscode.OutputChannel, workspacePath?: string) {
 		super()
@@ -104,10 +108,16 @@ export class IdleDetectionService extends EventEmitter {
 			return
 		}
 
-		this.outputChannel.appendLine("[IdleDetection] Task started - marking as active")
+		// Only use event-based detection for certain methods
+		if (!this.shouldUseEventDetection()) {
+			return
+		}
+
+		this.outputChannel.appendLine("[IdleDetection:Events] Task started - marking as active")
 		this.isTaskActive = true
 		this.isIdle = false
 		this.clearIdleTimer()
+		this.lastIdleDetectionSource = "events"
 		this.updateStatus("active")
 		this.emit("active")
 	}
@@ -120,8 +130,14 @@ export class IdleDetectionService extends EventEmitter {
 			return
 		}
 
-		this.outputChannel.appendLine("[IdleDetection] Task completed or message sent - starting idle timer")
+		// Only use event-based detection for certain methods
+		if (!this.shouldUseEventDetection()) {
+			return
+		}
+
+		this.outputChannel.appendLine("[IdleDetection:Events] Task completed or message sent - starting idle timer")
 		this.isTaskActive = false
+		this.lastIdleDetectionSource = "events"
 		this.updateStatus("waiting")
 		this.startIdleTimer()
 	}
@@ -148,6 +164,70 @@ export class IdleDetectionService extends EventEmitter {
 		}
 
 		this.handleIdleTimeout()
+	}
+
+	/**
+	 * Notifies the service that the "Start New Task" button became visible (button-based detection)
+	 */
+	notifyButtonVisible() {
+		if (!this.config.enabled) {
+			return
+		}
+
+		// Only use button-based detection for certain methods
+		if (!this.shouldUseButtonDetection()) {
+			return
+		}
+
+		this.outputChannel.appendLine("[IdleDetection:Button] Start New Task button visible - starting idle timer")
+		this.isTaskActive = false
+		this.lastIdleDetectionSource = "button"
+		this.updateStatus("waiting")
+		this.startIdleTimer()
+	}
+
+	/**
+	 * Notifies the service that the "Start New Task" button became hidden (task started)
+	 */
+	notifyButtonHidden() {
+		if (!this.config.enabled) {
+			return
+		}
+
+		// Only use button-based detection for certain methods
+		if (!this.shouldUseButtonDetection()) {
+			return
+		}
+
+		this.outputChannel.appendLine("[IdleDetection:Button] Start New Task button hidden - marking as active")
+		this.isTaskActive = true
+		this.isIdle = false
+		this.clearIdleTimer()
+		this.lastIdleDetectionSource = "button"
+		this.updateStatus("active")
+		this.emit("active")
+	}
+
+	/**
+	 * Determines if event-based detection should be used
+	 */
+	private shouldUseEventDetection(): boolean {
+		return (
+			this.config.detectionMethod === "events" ||
+			this.config.detectionMethod === "hybrid" ||
+			this.config.detectionMethod === "auto"
+		)
+	}
+
+	/**
+	 * Determines if button-based detection should be used
+	 */
+	private shouldUseButtonDetection(): boolean {
+		return (
+			this.config.detectionMethod === "button" ||
+			this.config.detectionMethod === "hybrid" ||
+			this.config.detectionMethod === "auto"
+		)
 	}
 
 	/**

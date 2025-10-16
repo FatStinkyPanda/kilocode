@@ -617,6 +617,23 @@
 					"default": false,
 					"description": "Enable idle detection to monitor when Kilo Code becomes idle after completing tasks"
 				},
+				"kilo-code.idleDetection.detectionMethod": {
+					"type": "string",
+					"default": "auto",
+					"enum": [
+						"auto",
+						"button",
+						"events",
+						"hybrid"
+					],
+					"enumDescriptions": [
+						"Automatically detect the best method based on Kilo Code state",
+						"Detect idle when 'Start New Task' button becomes visible (most reliable)",
+						"Detect idle using task lifecycle events (legacy method, may need improvements)",
+						"Use both button and events for redundant detection"
+					],
+					"description": "Method used to detect when Kilo Code becomes idle"
+				},
 				"kilo-code.idleDetection.idleTimeoutMs": {
 					"type": "number",
 					"default": 5000,
