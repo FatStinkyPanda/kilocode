@@ -44,6 +44,13 @@ All settings can be configured in VSCode settings (File > Preferences > Settings
 - **Default**: `true`
 - **Description**: Show idle detection status in the VSCode status bar
 
+### `kilo-code.idleDetection.autoContinueProject`
+
+- **Type**: Boolean
+- **Default**: `false`
+- **Description**: Automatically continue project development when idle (requires both idle detection and project continuance to be enabled)
+- **Note**: This is a separate feature from basic auto-prompts. When enabled with project continuance, Kilo Code will intelligently read project documentation, TODOs, and context to continue development instead of using simple text file prompts.
+
 ### `kilo-code.idleDetection.method`
 
 - **Type**: String (Enum)
@@ -87,11 +94,33 @@ You can pause and resume the auto-prompt functionality directly from the chat in
 
 ### Auto-Prompt System
 
+The idle detection system supports two modes of automatic task generation:
+
+#### Mode 1: Basic Auto-Prompts (Default)
+
 When idle state is detected, the system automatically:
 
 1. **Scans the Auto-Prompt Folder**: Reads all `.txt` files from the configured folder
 2. **Combines Content**: Concatenates the content from all text files into a single prompt
 3. **Sends to AI**: Automatically creates a new task with the combined content
+
+This mode is always available when idle detection is enabled.
+
+#### Mode 2: Automatic Project Continuance (Optional)
+
+When `kilo-code.idleDetection.autoContinueProject` is enabled along with `kilo-code.projectContinuance.enabled`:
+
+1. **Intelligent Context Gathering**: Reads project documentation, TODO files, and generates comprehensive context
+2. **Smart Continuation**: Creates a continuation prompt based on project state, pending tasks, and file structure
+3. **Fallback**: If project continuance fails, falls back to basic auto-prompts
+
+**To enable automatic project continuance on idle:**
+
+- Enable idle detection: `kilo-code.idleDetection.enabled: true`
+- Enable project continuance: `kilo-code.projectContinuance.enabled: true`
+- Enable auto-continue on idle: `kilo-code.idleDetection.autoContinueProject: true`
+
+**Important**: Automatic project continuance is a separate opt-in feature. By default, idle detection uses basic auto-prompts only.
 
 #### Auto-Prompt Folder Structure
 

@@ -656,6 +656,11 @@
 					"default": true,
 					"description": "Show idle status in the VSCode status bar (bottom toolbar)"
 				},
+				"kilo-code.idleDetection.autoContinueProject": {
+					"type": "boolean",
+					"default": false,
+					"description": "Automatically continue project development when idle (requires both idle detection and project continuance to be enabled)"
+				},
 				"kilo-code.autoGit.enabled": {
 					"type": "boolean",
 					"default": false,

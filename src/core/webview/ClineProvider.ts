@@ -455,10 +455,15 @@ export class ClineProvider
 			this.idleDetectionService.on("autoPromptReady", async (prompt: string) => {
 				this.log("[IdleDetection] Auto-prompt ready")
 				try {
-					// kilocode_change start: Check if project continuance is enabled
-					if (this.projectContinuanceService?.config?.enabled) {
-						this.log("[ProjectContinuance] Using intelligent project continuance instead of simple prompt")
-						const continuationPrompt = await this.projectContinuanceService.generateContinuationPrompt()
+					// kilocode_change start: Check if automatic project continuance is enabled
+					const autoContinueEnabled = this.getGlobalState("idleAutoContinueProject") ?? false
+					const projectContinuanceEnabled = this.projectContinuanceService?.config?.enabled ?? false
+
+					if (autoContinueEnabled && projectContinuanceEnabled) {
+						this.log(
+							"[ProjectContinuance] Automatic project continuance enabled, using intelligent continuation",
+						)
+						const continuationPrompt = await this.projectContinuanceService?.generateContinuationPrompt()
 						if (continuationPrompt) {
 							await this.createTask(continuationPrompt)
 						} else {
@@ -468,6 +473,12 @@ export class ClineProvider
 							await this.createTask(prompt)
 						}
 					} else {
+						if (!autoContinueEnabled) {
+							this.log("[ProjectContinuance] Automatic project continuance is disabled in settings")
+						}
+						if (!projectContinuanceEnabled) {
+							this.log("[ProjectContinuance] Project continuance feature is not enabled")
+						}
 						// kilocode_change end
 						// Send the auto-prompt as a new task
 						await this.createTask(prompt)
