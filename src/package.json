@@ -661,6 +661,11 @@
 					"default": false,
 					"description": "Automatically continue project development when idle (requires both idle detection and project continuance to be enabled)"
 				},
+				"kilo-code.idleDetection.continueInCurrentTask": {
+					"type": "boolean",
+					"default": true,
+					"description": "Continue in the current task instead of creating a new task when auto-continuing (preserves AI context and reduces token usage)"
+				},
 				"kilo-code.autoGit.enabled": {
 					"type": "boolean",
 					"default": false,

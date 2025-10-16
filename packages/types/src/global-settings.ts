@@ -183,6 +183,7 @@ export const globalSettingsSchema = z.object({
 	idleAutoPromptFolder: z.string().optional(),
 	idleShowStatusBar: z.boolean().optional(),
 	idleAutoContinueProject: z.boolean().optional(),
+	idleContinueInCurrentTask: z.boolean().optional(),
 	// kilocode_change end
 	// kilocode_change start: Auto git commit/push settings
 	autoGitEnabled: z.boolean().optional(),

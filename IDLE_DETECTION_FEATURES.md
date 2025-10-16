@@ -51,6 +51,13 @@ All settings can be configured in VSCode settings (File > Preferences > Settings
 - **Description**: Automatically continue project development when idle (requires both idle detection and project continuance to be enabled)
 - **Note**: This is a separate feature from basic auto-prompts. When enabled with project continuance, Kilo Code will intelligently read project documentation, TODOs, and context to continue development instead of using simple text file prompts.
 
+### `kilo-code.idleDetection.continueInCurrentTask`
+
+- **Type**: Boolean
+- **Default**: `true`
+- **Description**: Continue in the current task instead of creating a new task when auto-continuing (preserves AI context and reduces token usage)
+- **Note**: When enabled, automatic continuance messages are sent to the current active task, preserving conversation history and context. When disabled, a new task is created for each automatic continuation, which reloads all project context.
+
 ### `kilo-code.idleDetection.method`
 
 - **Type**: String (Enum)
@@ -119,6 +126,19 @@ When `kilo-code.idleDetection.autoContinueProject` is enabled along with `kilo-c
 - Enable idle detection: `kilo-code.idleDetection.enabled: true`
 - Enable project continuance: `kilo-code.projectContinuance.enabled: true`
 - Enable auto-continue on idle: `kilo-code.idleDetection.autoContinueProject: true`
+
+**Context Preservation (Recommended):**
+
+By default (`kilo-code.idleDetection.continueInCurrentTask: true`), continuation messages are sent to the current active task rather than creating new tasks. This provides significant benefits:
+
+- **Preserves AI Context**: The AI maintains full conversation history from the current task
+- **Reduces Token Usage**: No need to reload entire project context with each continuation
+- **Maintains Continuity**: The AI remembers previous decisions, changes, and discussions
+- **Faster Response**: Less context processing means quicker AI responses
+
+If you prefer each continuation to start fresh with full project context (uses more tokens):
+
+- Set `kilo-code.idleDetection.continueInCurrentTask: false`
 
 **Important**: Automatic project continuance is a separate opt-in feature. By default, idle detection uses basic auto-prompts only.
 

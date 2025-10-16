@@ -458,19 +458,21 @@ export class ClineProvider
 					// kilocode_change start: Check if automatic project continuance is enabled
 					const autoContinueEnabled = this.getGlobalState("idleAutoContinueProject") ?? false
 					const projectContinuanceEnabled = this.projectContinuanceService?.config?.enabled ?? false
+					const continueInCurrentTask = this.getGlobalState("idleContinueInCurrentTask") ?? true
 
+					// Determine which prompt to use
+					let messageToSend = prompt
 					if (autoContinueEnabled && projectContinuanceEnabled) {
 						this.log(
 							"[ProjectContinuance] Automatic project continuance enabled, using intelligent continuation",
 						)
 						const continuationPrompt = await this.projectContinuanceService?.generateContinuationPrompt()
 						if (continuationPrompt) {
-							await this.createTask(continuationPrompt)
+							messageToSend = continuationPrompt
 						} else {
 							this.log(
 								"[ProjectContinuance] No continuation prompt generated, falling back to auto-prompt",
 							)
-							await this.createTask(prompt)
 						}
 					} else {
 						if (!autoContinueEnabled) {
@@ -479,10 +481,25 @@ export class ClineProvider
 						if (!projectContinuanceEnabled) {
 							this.log("[ProjectContinuance] Project continuance feature is not enabled")
 						}
-						// kilocode_change end
-						// Send the auto-prompt as a new task
-						await this.createTask(prompt)
 					}
+
+					// Send the message - either to current task or as new task
+					if (continueInCurrentTask) {
+						const currentTask = this.getCurrentTask()
+						if (currentTask) {
+							this.log("[IdleDetection] Continuing in current task (preserving context)")
+							currentTask.handleWebviewAskResponse("messageResponse", messageToSend, [])
+						} else {
+							this.log(
+								"[IdleDetection] No current task found, creating new task despite continueInCurrentTask=true",
+							)
+							await this.createTask(messageToSend)
+						}
+					} else {
+						this.log("[IdleDetection] Creating new task (will reload context)")
+						await this.createTask(messageToSend)
+					}
+					// kilocode_change end
 				} catch (error) {
 					this.log(
 						`[IdleDetection] Error sending auto-prompt: ${error instanceof Error ? error.message : String(error)}`,
