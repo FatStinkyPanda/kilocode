@@ -633,6 +633,11 @@
 					"type": "string",
 					"default": ".kilocode-prompts",
 					"description": "Folder path (relative to workspace root or absolute) containing text files to automatically send to AI when idle"
+				},
+				"kilo-code.idleDetection.showStatusBar": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show idle status in the VSCode status bar (bottom toolbar)"
 				}
 			}
 		},

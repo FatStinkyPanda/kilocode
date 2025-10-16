@@ -164,6 +164,7 @@ export class ClineProvider
 	public readonly providerSettingsManager: ProviderSettingsManager
 	public readonly customModesManager: CustomModesManager
 	private idleDetectionService?: IdleDetectionService
+	private idleStatusBarItem?: vscode.StatusBarItem
 
 	constructor(
 		readonly context: vscode.ExtensionContext,
@@ -414,6 +415,7 @@ export class ClineProvider
 			const idleTimeoutMs = config.get<number>("idleDetection.idleTimeoutMs", 5000)
 			const enableNotifications = config.get<boolean>("idleDetection.enableNotifications", true)
 			const autoPromptFolder = config.get<string>("idleDetection.autoPromptFolder", ".kilocode-prompts")
+			const showStatusBar = config.get<boolean>("idleDetection.showStatusBar", true)
 
 			this.idleDetectionService = IdleDetectionService.getInstance(
 				{
@@ -421,10 +423,16 @@ export class ClineProvider
 					idleTimeoutMs,
 					enableNotifications,
 					autoPromptFolder,
+					showStatusBar,
 				},
 				this.outputChannel,
 				this.currentWorkspacePath,
 			)
+
+			// Create status bar item if enabled
+			if (enabled && showStatusBar) {
+				this.createIdleStatusBar()
+			}
 
 			// Listen for idle state
 			this.idleDetectionService.on("idle", () => {
@@ -444,6 +452,11 @@ export class ClineProvider
 				}
 			})
 
+			// Listen for status changes
+			this.idleDetectionService.on("statusChanged", (status: string) => {
+				this.updateIdleStatusBar(status as "active" | "waiting" | "idle")
+			})
+
 			// Set up configuration change listener
 			this.disposables.push(
 				vscode.workspace.onDidChangeConfiguration((e) => {
@@ -451,24 +464,36 @@ export class ClineProvider
 						e.affectsConfiguration(`${Package.name}.idleDetection.enabled`) ||
 						e.affectsConfiguration(`${Package.name}.idleDetection.idleTimeoutMs`) ||
 						e.affectsConfiguration(`${Package.name}.idleDetection.enableNotifications`) ||
-						e.affectsConfiguration(`${Package.name}.idleDetection.autoPromptFolder`)
+						e.affectsConfiguration(`${Package.name}.idleDetection.autoPromptFolder`) ||
+						e.affectsConfiguration(`${Package.name}.idleDetection.showStatusBar`)
 					) {
 						const config = vscode.workspace.getConfiguration(Package.name)
+						const enabled = config.get<boolean>("idleDetection.enabled", false)
+						const showStatusBar = config.get<boolean>("idleDetection.showStatusBar", true)
+
 						this.idleDetectionService?.updateConfig({
-							enabled: config.get<boolean>("idleDetection.enabled", false),
+							enabled,
 							idleTimeoutMs: config.get<number>("idleDetection.idleTimeoutMs", 5000),
 							enableNotifications: config.get<boolean>("idleDetection.enableNotifications", true),
 							autoPromptFolder: config.get<string>("idleDetection.autoPromptFolder", ".kilocode-prompts"),
+							showStatusBar,
 						})
+
+						// Handle status bar visibility
+						if (enabled && showStatusBar && !this.idleStatusBarItem) {
+							this.createIdleStatusBar()
+						} else if ((!enabled || !showStatusBar) && this.idleStatusBarItem) {
+							this.idleStatusBarItem.dispose()
+							this.idleStatusBarItem = undefined
+							this.log("[IdleDetection] Status bar removed")
+						}
 					}
 				}),
 			)
 
 			this.log("[IdleDetection] Service initialized and configured")
 		} catch (error) {
-			this.log(
-				`[IdleDetection] Failed to initialize: ${error instanceof Error ? error.message : String(error)}`,
-			)
+			this.log(`[IdleDetection] Failed to initialize: ${error instanceof Error ? error.message : String(error)}`)
 		}
 	}
 
@@ -478,6 +503,49 @@ export class ClineProvider
 	private updateIdleDetectionWorkspace(workspacePath: string | undefined) {
 		if (this.idleDetectionService && workspacePath) {
 			this.idleDetectionService.updateWorkspacePath(workspacePath)
+		}
+	}
+
+	/**
+	 * Creates the status bar item for idle detection
+	 */
+	private createIdleStatusBar() {
+		if (this.idleStatusBarItem) {
+			return // Already created
+		}
+
+		this.idleStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100)
+		this.idleStatusBarItem.tooltip = "Kilo Code Idle Status"
+		this.updateIdleStatusBar("active")
+		this.idleStatusBarItem.show()
+		this.disposables.push(this.idleStatusBarItem)
+		this.log("[IdleDetection] Status bar created")
+	}
+
+	/**
+	 * Updates the status bar with the current idle status
+	 */
+	private updateIdleStatusBar(status: "active" | "waiting" | "idle") {
+		if (!this.idleStatusBarItem) {
+			return
+		}
+
+		switch (status) {
+			case "active":
+				this.idleStatusBarItem.text = "$(sync~spin) Kilo Code: Active"
+				this.idleStatusBarItem.backgroundColor = undefined
+				this.idleStatusBarItem.color = undefined
+				break
+			case "waiting":
+				this.idleStatusBarItem.text = "$(clock) Kilo Code: Waiting"
+				this.idleStatusBarItem.backgroundColor = undefined
+				this.idleStatusBarItem.color = new vscode.ThemeColor("statusBarItem.warningForeground")
+				break
+			case "idle":
+				this.idleStatusBarItem.text = "$(check) Kilo Code: Idle"
+				this.idleStatusBarItem.backgroundColor = new vscode.ThemeColor("statusBarItem.warningBackground")
+				this.idleStatusBarItem.color = new vscode.ThemeColor("statusBarItem.warningForeground")
+				break
 		}
 	}
 

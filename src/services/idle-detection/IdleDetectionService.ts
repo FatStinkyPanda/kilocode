@@ -8,12 +8,16 @@ export interface IdleDetectionConfig {
 	idleTimeoutMs: number
 	enableNotifications: boolean
 	autoPromptFolder: string
+	showStatusBar: boolean
 }
+
+export type IdleStatus = "active" | "waiting" | "idle"
 
 export interface IdleDetectionEvents {
 	idle: () => void
 	active: () => void
 	autoPromptReady: (prompt: string) => void
+	statusChanged: (status: IdleStatus) => void
 }
 
 /**
@@ -28,6 +32,7 @@ export class IdleDetectionService extends EventEmitter {
 	private config: IdleDetectionConfig
 	private outputChannel: vscode.OutputChannel
 	private workspacePath: string | undefined
+	private currentStatus: IdleStatus = "active"
 
 	private constructor(config: IdleDetectionConfig, outputChannel: vscode.OutputChannel, workspacePath?: string) {
 		super()
@@ -74,6 +79,24 @@ export class IdleDetectionService extends EventEmitter {
 	}
 
 	/**
+	 * Gets the current idle status
+	 */
+	getStatus(): IdleStatus {
+		return this.currentStatus
+	}
+
+	/**
+	 * Updates the current status and emits status change event
+	 */
+	private updateStatus(newStatus: IdleStatus) {
+		if (this.currentStatus !== newStatus) {
+			this.currentStatus = newStatus
+			this.outputChannel.appendLine(`[IdleDetection] Status changed to: ${newStatus}`)
+			this.emit("statusChanged", newStatus)
+		}
+	}
+
+	/**
 	 * Notifies the service that a task has started
 	 */
 	notifyTaskStarted() {
@@ -85,6 +108,7 @@ export class IdleDetectionService extends EventEmitter {
 		this.isTaskActive = true
 		this.isIdle = false
 		this.clearIdleTimer()
+		this.updateStatus("active")
 		this.emit("active")
 	}
 
@@ -98,6 +122,7 @@ export class IdleDetectionService extends EventEmitter {
 
 		this.outputChannel.appendLine("[IdleDetection] Task completed or message sent - starting idle timer")
 		this.isTaskActive = false
+		this.updateStatus("waiting")
 		this.startIdleTimer()
 	}
 
@@ -155,6 +180,7 @@ export class IdleDetectionService extends EventEmitter {
 
 		this.outputChannel.appendLine("[IdleDetection] Idle state detected")
 		this.isIdle = true
+		this.updateStatus("idle")
 		this.emit("idle")
 
 		// Show notification if enabled
