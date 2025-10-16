@@ -591,6 +591,7 @@ export class ClineProvider
 					maxFileTreeDepth: projectContinuanceMaxFileTreeDepth,
 				},
 				this.outputChannel,
+				this.context,
 				this.currentWorkspacePath,
 			)
 

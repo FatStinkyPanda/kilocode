@@ -37,11 +37,19 @@ export class ProjectContinuanceService extends EventEmitter {
 	public config: ProjectContinuanceConfig
 	private outputChannel: vscode.OutputChannel
 	private workspacePath: string | undefined
+	private context: vscode.ExtensionContext
+	private cachedDocumentationPath?: string
 
-	private constructor(config: ProjectContinuanceConfig, outputChannel: vscode.OutputChannel, workspacePath?: string) {
+	private constructor(
+		config: ProjectContinuanceConfig,
+		outputChannel: vscode.OutputChannel,
+		context: vscode.ExtensionContext,
+		workspacePath?: string,
+	) {
 		super()
 		this.config = config
 		this.outputChannel = outputChannel
+		this.context = context
 		this.workspacePath = workspacePath
 		this.outputChannel.appendLine("[ProjectContinuance] Service initialized")
 	}
@@ -52,10 +60,16 @@ export class ProjectContinuanceService extends EventEmitter {
 	static getInstance(
 		config?: ProjectContinuanceConfig,
 		outputChannel?: vscode.OutputChannel,
+		context?: vscode.ExtensionContext,
 		workspacePath?: string,
 	): ProjectContinuanceService {
-		if (!ProjectContinuanceService.instance && config && outputChannel) {
-			ProjectContinuanceService.instance = new ProjectContinuanceService(config, outputChannel, workspacePath)
+		if (!ProjectContinuanceService.instance && config && outputChannel && context) {
+			ProjectContinuanceService.instance = new ProjectContinuanceService(
+				config,
+				outputChannel,
+				context,
+				workspacePath,
+			)
 		}
 		return ProjectContinuanceService.instance!
 	}
@@ -73,6 +87,31 @@ export class ProjectContinuanceService extends EventEmitter {
 	 */
 	updateWorkspacePath(workspacePath: string) {
 		this.workspacePath = workspacePath
+		this.cachedDocumentationPath = undefined // Clear cache when workspace changes
+	}
+
+	/**
+	 * Gets the stored documentation path for the current workspace
+	 */
+	private async getStoredDocumentationPath(): Promise<string | undefined> {
+		if (!this.workspacePath) {
+			return undefined
+		}
+		const key = `projectContinuance_docPath_${this.workspacePath}`
+		return await this.context.workspaceState.get<string>(key)
+	}
+
+	/**
+	 * Stores the documentation path for the current workspace
+	 */
+	private async storeDocumentationPath(docPath: string): Promise<void> {
+		if (!this.workspacePath) {
+			return
+		}
+		const key = `projectContinuance_docPath_${this.workspacePath}`
+		await this.context.workspaceState.update(key, docPath)
+		this.cachedDocumentationPath = docPath
+		this.outputChannel.appendLine(`[ProjectContinuance] Stored documentation path: ${docPath}`)
 	}
 
 	/**
@@ -145,28 +184,68 @@ export class ProjectContinuanceService extends EventEmitter {
 			folderPath,
 		}
 
-		// Find documentation file (look for .md files with similar names)
-		const docFileName = this.config.documentationFileName
-		let docPath = await this.findFile(docFileName, folderPath)
+		// First, check if we have a stored documentation path
+		let docPath = this.cachedDocumentationPath || (await this.getStoredDocumentationPath())
 
-		// If exact name not found, try variations
-		if (!docPath && this.workspacePath) {
-			const docVariations = [
-				docFileName,
-				`${path.parse(docFileName).name}.md`,
-				`${path.parse(docFileName).name}-documentation.md`,
-				`${path.parse(docFileName).name}-complete-documentation.md`,
-				"README.md",
-				"DEVELOPMENT.md",
-				"PROJECT.md",
-			]
+		// Verify the stored path still exists
+		if (docPath) {
+			try {
+				await fs.access(docPath)
+				this.outputChannel.appendLine(`[ProjectContinuance] Using stored documentation path: ${docPath}`)
+			} catch {
+				this.outputChannel.appendLine(
+					`[ProjectContinuance] Stored documentation path no longer exists, searching...`,
+				)
+				docPath = undefined
+			}
+		}
 
-			for (const variation of docVariations) {
-				const foundPath = await this.findFile(variation, folderPath)
-				if (foundPath) {
-					docPath = foundPath
-					break
+		// If no stored path or it doesn't exist, search for documentation
+		if (!docPath) {
+			// PRIORITY 1: Check for project_documentation.md in .kilo-project folder first
+			const priorityDocPath = path.join(folderPath, "project_documentation.md")
+			try {
+				await fs.access(priorityDocPath)
+				docPath = priorityDocPath
+				this.outputChannel.appendLine(
+					`[ProjectContinuance] Found priority documentation file: project_documentation.md`,
+				)
+				await this.storeDocumentationPath(docPath)
+			} catch {
+				// Priority file doesn't exist, continue searching
+			}
+
+			// If priority file not found, search for configured file name
+			if (!docPath) {
+				const docFileName = this.config.documentationFileName
+				docPath = await this.findFile(docFileName, folderPath)
+			}
+
+			// If exact name not found, try variations
+			if (!docPath && this.workspacePath) {
+				const docVariations = [
+					this.config.documentationFileName,
+					`${path.parse(this.config.documentationFileName).name}.md`,
+					`${path.parse(this.config.documentationFileName).name}-documentation.md`,
+					`${path.parse(this.config.documentationFileName).name}-complete-documentation.md`,
+					"README.md",
+					"DEVELOPMENT.md",
+					"PROJECT.md",
+				]
+
+				for (const variation of docVariations) {
+					const foundPath = await this.findFile(variation, folderPath)
+					if (foundPath) {
+						docPath = foundPath
+						this.outputChannel.appendLine(`[ProjectContinuance] Found documentation: ${variation}`)
+						break
+					}
 				}
+			}
+
+			// Store the found path for future use
+			if (docPath) {
+				await this.storeDocumentationPath(docPath)
 			}
 		}
 
