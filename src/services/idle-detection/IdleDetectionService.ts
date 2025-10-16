@@ -29,11 +29,7 @@ export class IdleDetectionService extends EventEmitter {
 	private outputChannel: vscode.OutputChannel
 	private workspacePath: string | undefined
 
-	private constructor(
-		config: IdleDetectionConfig,
-		outputChannel: vscode.OutputChannel,
-		workspacePath?: string,
-	) {
+	private constructor(config: IdleDetectionConfig, outputChannel: vscode.OutputChannel, workspacePath?: string) {
 		super()
 		this.config = config
 		this.outputChannel = outputChannel
@@ -192,11 +188,51 @@ export class IdleDetectionService extends EventEmitter {
 
 			this.outputChannel.appendLine(`[IdleDetection] Checking auto-prompt folder: ${folderPath}`)
 
-			// Check if folder exists
+			// Check if folder exists, create it if it doesn't
 			try {
 				await fs.access(folderPath)
+				this.outputChannel.appendLine(`[IdleDetection] Auto-prompt folder exists: ${folderPath}`)
 			} catch {
-				this.outputChannel.appendLine(`[IdleDetection] Auto-prompt folder does not exist: ${folderPath}`)
+				this.outputChannel.appendLine(
+					`[IdleDetection] Auto-prompt folder does not exist, creating: ${folderPath}`,
+				)
+				try {
+					await fs.mkdir(folderPath, { recursive: true })
+					this.outputChannel.appendLine(
+						`[IdleDetection] Auto-prompt folder created successfully: ${folderPath}`,
+					)
+
+					// Create a README file to explain the folder's purpose
+					const readmePath = path.join(folderPath, "README.txt")
+					const readmeContent = `# Kilo Code Auto-Prompt Folder
+
+This folder is used by Kilo Code's idle detection feature.
+
+How it works:
+1. When Kilo Code becomes idle after completing a task
+2. All .txt files in this folder are automatically read
+3. Their contents are combined and sent to the AI as a new task
+
+To use this feature:
+- Create .txt files in this folder with your task descriptions
+- Enable idle detection in VSCode settings (search for "kilo-code idle")
+- When Kilo Code becomes idle, your tasks will be automatically processed
+
+Example: Create a file named "review-code.txt" with content like:
+"Review the authentication module for security issues"
+
+For more information, see: IDLE_DETECTION_FEATURES.md in the project root.
+`
+					await fs.writeFile(readmePath, readmeContent, "utf-8")
+					this.outputChannel.appendLine(`[IdleDetection] Created README.txt in auto-prompt folder`)
+				} catch (createError) {
+					this.outputChannel.appendLine(
+						`[IdleDetection] Error creating auto-prompt folder: ${createError instanceof Error ? createError.message : String(createError)}`,
+					)
+					return
+				}
+
+				// No text files yet since we just created the folder
 				return
 			}
 
@@ -209,7 +245,9 @@ export class IdleDetectionService extends EventEmitter {
 				return
 			}
 
-			this.outputChannel.appendLine(`[IdleDetection] Found ${textFiles.length} text file(s) in auto-prompt folder`)
+			this.outputChannel.appendLine(
+				`[IdleDetection] Found ${textFiles.length} text file(s) in auto-prompt folder`,
+			)
 
 			// Read and concatenate content from all text files
 			const fileContents: string[] = []
