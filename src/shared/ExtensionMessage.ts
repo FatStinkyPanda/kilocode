@@ -154,6 +154,7 @@ export interface ExtensionMessage {
 		| "dismissedUpsells"
 		| "showTimestamps" // kilocode_change
 		| "organizationSwitchResult"
+		| "idleDetectionStatus"
 	text?: string
 	// kilocode_change start
 	payload?:
@@ -267,6 +268,7 @@ export interface ExtensionMessage {
 	queuedMessages?: QueuedMessage[]
 	list?: string[] // For dismissedUpsells
 	organizationId?: string | null // For organizationSwitchResult
+	isPaused?: boolean // For idle detection status
 }
 
 export type ExtensionState = Pick<

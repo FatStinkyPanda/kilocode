@@ -414,5 +414,9 @@
 		"problems": "Problems",
 		"terminal": "Terminal",
 		"url": "Paste URL to fetch contents"
+	},
+	"idleDetection": {
+		"pauseTooltip": "Pause auto-prompt on idle",
+		"resumeTooltip": "Resume auto-prompt on idle"
 	}
 }

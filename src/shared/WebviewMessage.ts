@@ -292,6 +292,14 @@ export interface WebviewMessage {
 		| "editQueuedMessage"
 		| "dismissUpsell"
 		| "getDismissedUpsells"
+		| "idleDetectionPause"
+		| "idleDetectionResume"
+		| "idleDetectionEnabled"
+		| "idleDetectionMethod"
+		| "idleTimeoutMs"
+		| "idleEnableNotifications"
+		| "idleAutoPromptFolder"
+		| "idleShowStatusBar"
 	text?: string
 	editedMessageContent?: string
 	tab?: "settings" | "history" | "mcp" | "modes" | "chat" | "marketplace" | "cloud"
@@ -358,6 +366,7 @@ export interface WebviewMessage {
 	upsellId?: string // For dismissUpsell
 	list?: string[] // For dismissedUpsells response
 	organizationId?: string | null // For organization switching
+	isPaused?: boolean // For idle detection pause/resume status
 	codeIndexSettings?: {
 		// Global state settings
 		codebaseIndexEnabled: boolean

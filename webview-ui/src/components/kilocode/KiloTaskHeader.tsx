@@ -19,6 +19,7 @@ import Thumbnails from "../common/Thumbnails"
 
 import { TaskActions } from "../chat/TaskActions"
 import { ShareButton } from "../chat/ShareButton"
+import { IdleDetectionButton } from "../chat/IdleDetectionButton"
 import { ContextWindowProgress } from "../chat/ContextWindowProgress"
 import { TaskTimeline } from "../chat/TaskTimeline"
 import { mentionRegexGlobal } from "@roo/context-mentions"
@@ -139,6 +140,7 @@ const KiloTaskHeader = ({
 								}
 							/>
 							{condenseButton}
+							<IdleDetectionButton disabled={buttonsDisabled} />
 							<ShareButton item={currentTaskItem} disabled={buttonsDisabled} />
 							{!!totalCost && <span>${totalCost.toFixed(2)}</span>}
 						</div>

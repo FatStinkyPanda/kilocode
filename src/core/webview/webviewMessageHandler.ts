@@ -1315,6 +1315,38 @@ export const webviewMessageHandler = async (
 			await updateGlobalState("systemNotificationsEnabled", systemNotificationsEnabled)
 			await provider.postStateToWebview()
 			break
+		case "idleDetectionPause":
+			// Pause idle detection auto-prompts
+			provider.idleDetectionService?.pause()
+			break
+		case "idleDetectionResume":
+			// Resume idle detection auto-prompts
+			provider.idleDetectionService?.resume()
+			break
+		case "idleDetectionEnabled":
+			await updateGlobalState("idleDetectionEnabled", message.bool ?? false)
+			await provider.postStateToWebview()
+			break
+		case "idleDetectionMethod":
+			await updateGlobalState("idleDetectionMethod", message.text ?? "auto")
+			await provider.postStateToWebview()
+			break
+		case "idleTimeoutMs":
+			await updateGlobalState("idleTimeoutMs", message.value ?? 5000)
+			await provider.postStateToWebview()
+			break
+		case "idleEnableNotifications":
+			await updateGlobalState("idleEnableNotifications", message.bool ?? true)
+			await provider.postStateToWebview()
+			break
+		case "idleAutoPromptFolder":
+			await updateGlobalState("idleAutoPromptFolder", message.text ?? ".kilocode-prompts")
+			await provider.postStateToWebview()
+			break
+		case "idleShowStatusBar":
+			await updateGlobalState("idleShowStatusBar", message.bool ?? true)
+			await provider.postStateToWebview()
+			break
 		case "openInBrowser":
 			if (message.url) {
 				vscode.env.openExternal(vscode.Uri.parse(message.url))

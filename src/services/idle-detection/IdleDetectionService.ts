@@ -14,13 +14,15 @@ export interface IdleDetectionConfig {
 	showStatusBar: boolean
 }
 
-export type IdleStatus = "active" | "waiting" | "idle"
+export type IdleStatus = "active" | "waiting" | "idle" | "paused"
 
 export interface IdleDetectionEvents {
 	idle: () => void
 	active: () => void
 	autoPromptReady: (prompt: string) => void
 	statusChanged: (status: IdleStatus) => void
+	paused: () => void
+	resumed: () => void
 }
 
 /**
@@ -37,6 +39,8 @@ export class IdleDetectionService extends EventEmitter {
 	private workspacePath: string | undefined
 	private currentStatus: IdleStatus = "active"
 	private lastIdleDetectionSource: "button" | "events" | "none" = "none"
+	private isPaused: boolean = false
+	private pausedState: { isIdle: boolean; isTaskActive: boolean } | undefined
 
 	private constructor(config: IdleDetectionConfig, outputChannel: vscode.OutputChannel, workspacePath?: string) {
 		super()
@@ -167,6 +171,73 @@ export class IdleDetectionService extends EventEmitter {
 	}
 
 	/**
+	 * Pauses auto-prompt detection. When paused, idle state will be detected but auto-prompts won't be sent.
+	 */
+	pause() {
+		if (this.isPaused) {
+			return
+		}
+
+		this.outputChannel.appendLine("[IdleDetection] Pausing auto-prompt")
+		this.isPaused = true
+
+		// Save current state
+		this.pausedState = {
+			isIdle: this.isIdle,
+			isTaskActive: this.isTaskActive,
+		}
+
+		// Clear any pending idle timers
+		this.clearIdleTimer()
+
+		// Update status to paused
+		this.updateStatus("paused")
+		this.emit("paused")
+	}
+
+	/**
+	 * Resumes auto-prompt detection.
+	 */
+	resume() {
+		if (!this.isPaused) {
+			return
+		}
+
+		this.outputChannel.appendLine("[IdleDetection] Resuming auto-prompt")
+		this.isPaused = false
+
+		// Restore previous state if we had one
+		if (this.pausedState) {
+			this.isIdle = this.pausedState.isIdle
+			this.isTaskActive = this.pausedState.isTaskActive
+			this.pausedState = undefined
+
+			// If we were idle before pausing, trigger it again
+			if (this.isIdle) {
+				this.updateStatus("idle")
+				this.emit("idle")
+			} else if (!this.isTaskActive) {
+				this.updateStatus("waiting")
+				this.startIdleTimer()
+			} else {
+				this.updateStatus("active")
+			}
+		} else {
+			// No saved state, default to active
+			this.updateStatus("active")
+		}
+
+		this.emit("resumed")
+	}
+
+	/**
+	 * Returns whether auto-prompt is currently paused
+	 */
+	isPausedState(): boolean {
+		return this.isPaused
+	}
+
+	/**
 	 * Notifies the service that the "Start New Task" button became visible (button-based detection)
 	 */
 	notifyButtonVisible() {
@@ -284,6 +355,12 @@ export class IdleDetectionService extends EventEmitter {
 	 */
 	private async processAutoPromptFolder() {
 		if (!this.config.autoPromptFolder || !this.workspacePath) {
+			return
+		}
+
+		// Skip processing if paused
+		if (this.isPaused) {
+			this.outputChannel.appendLine("[IdleDetection] Auto-prompt is paused, skipping folder processing")
 			return
 		}
 

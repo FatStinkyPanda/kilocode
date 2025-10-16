@@ -163,7 +163,7 @@ export class ClineProvider
 	public readonly latestAnnouncementId = "sep-2025-code-supernova-1m" // Code Supernova 1M context window announcement
 	public readonly providerSettingsManager: ProviderSettingsManager
 	public readonly customModesManager: CustomModesManager
-	private idleDetectionService?: IdleDetectionService
+	public idleDetectionService?: IdleDetectionService
 	private idleStatusBarItem?: vscode.StatusBarItem
 
 	constructor(
@@ -460,7 +460,16 @@ export class ClineProvider
 
 			// Listen for status changes
 			this.idleDetectionService.on("statusChanged", (status: string) => {
-				this.updateIdleStatusBar(status as "active" | "waiting" | "idle")
+				this.updateIdleStatusBar(status as "active" | "waiting" | "idle" | "paused")
+			})
+
+			// Listen for pause/resume events to notify webview
+			this.idleDetectionService.on("paused", () => {
+				this.postMessageToWebview({ type: "idleDetectionStatus", isPaused: true })
+			})
+
+			this.idleDetectionService.on("resumed", () => {
+				this.postMessageToWebview({ type: "idleDetectionStatus", isPaused: false })
 			})
 
 			// Set up configuration change listener
@@ -537,7 +546,7 @@ export class ClineProvider
 	/**
 	 * Updates the status bar with the current idle status
 	 */
-	private updateIdleStatusBar(status: "active" | "waiting" | "idle") {
+	private updateIdleStatusBar(status: "active" | "waiting" | "idle" | "paused") {
 		if (!this.idleStatusBarItem) {
 			return
 		}
@@ -557,6 +566,11 @@ export class ClineProvider
 				this.idleStatusBarItem.text = "$(check) Kilo Code: Idle"
 				this.idleStatusBarItem.backgroundColor = new vscode.ThemeColor("statusBarItem.warningBackground")
 				this.idleStatusBarItem.color = new vscode.ThemeColor("statusBarItem.warningForeground")
+				break
+			case "paused":
+				this.idleStatusBarItem.text = "$(debug-pause) Kilo Code: Paused"
+				this.idleStatusBarItem.backgroundColor = undefined
+				this.idleStatusBarItem.color = new vscode.ThemeColor("statusBarItem.errorForeground")
 				break
 		}
 	}
