@@ -187,21 +187,52 @@ export abstract class ShadowCheckpointService extends EventEmitter {
 			// Find all .git/HEAD files that are not at the root level.
 			const args = ["--files", "--hidden", "--follow", "-g", "**/.git/HEAD", this.workspaceDir]
 
+			this.log(
+				`[${this.constructor.name}#getNestedGitRepository] searching for .git/HEAD in workspace: ${this.workspaceDir}`,
+			)
+
 			const gitPaths = await executeRipgrep({ args, workspacePath: this.workspaceDir })
 
+			this.log(`[${this.constructor.name}#getNestedGitRepository] found ${gitPaths.length} .git/HEAD files`)
+
 			// Filter to only include nested git directories (not the root .git).
-			// Since we're searching for HEAD files, we expect type to be "file"
+			// A nested git repo is one where there's at least one directory level between
+			// the workspace root and the .git folder (e.g., "subfolder/.git/HEAD")
 			const nestedGitPaths = gitPaths.filter(({ type, path: filePath }) => {
-				// Check if it's a file and is a nested .git/HEAD (not at root)
+				// Check if it's a file
 				if (type !== "file") return false
 
-				// Ensure it's a .git/HEAD file and not the root one
+				// Normalize path separators
 				const normalizedPath = filePath.replace(/\\/g, "/")
-				return (
-					normalizedPath.includes(".git/HEAD") &&
-					!normalizedPath.startsWith(".git/") &&
-					normalizedPath !== ".git/HEAD"
+
+				this.log(`[${this.constructor.name}#getNestedGitRepository] found git path: '${normalizedPath}'`)
+
+				// The workspace root's .git would be exactly ".git/HEAD"
+				// A nested repo would have a parent folder like "subfolder/.git/HEAD"
+				if (normalizedPath === ".git/HEAD") {
+					this.log(`[${this.constructor.name}#getNestedGitRepository] path is root .git, skipping`)
+					return false
+				}
+
+				// If the path doesn't end with .git/HEAD, it's not what we're looking for
+				if (!normalizedPath.endsWith(".git/HEAD")) {
+					this.log(
+						`[${this.constructor.name}#getNestedGitRepository] path doesn't end with .git/HEAD, skipping`,
+					)
+					return false
+				}
+
+				// Check if there's a parent directory before .git
+				// For example: "Pyramid of Mathematical Mysteries/.git/HEAD" should return true
+				// But ".git/HEAD" should return false
+				const pathWithoutGitHead = normalizedPath.slice(0, -".git/HEAD".length)
+				const hasParentDir = pathWithoutGitHead.length > 0 && pathWithoutGitHead !== "/"
+
+				this.log(
+					`[${this.constructor.name}#getNestedGitRepository] pathWithoutGitHead: '${pathWithoutGitHead}', hasParentDir: ${hasParentDir}`,
 				)
+
+				return hasParentDir
 			})
 
 			if (nestedGitPaths.length > 0) {

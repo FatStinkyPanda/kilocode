@@ -345,6 +345,18 @@ const getCommandsMap = ({ context, outputChannel }: RegisterCommandOptions): Rec
 			vscode.window.showErrorMessage(errorMessage)
 		}
 	},
+	cancelAutoProceed: () => {
+		const visibleProvider = getVisibleProviderOrLog(outputChannel)
+
+		if (!visibleProvider) {
+			return
+		}
+
+		// Clear the auto-proceed timer
+		visibleProvider["clearAutoProceedTimer"]()
+		outputChannel.appendLine("[AutoProceed] User cancelled auto-proceed via status bar click")
+		vscode.window.showInformationMessage("Auto-Proceed cancelled")
+	},
 })
 
 export const openClineInNewTab = async ({ context, outputChannel }: Omit<RegisterCommandOptions, "provider">) => {

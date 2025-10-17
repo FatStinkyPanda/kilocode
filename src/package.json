@@ -297,6 +297,11 @@
 				"command": "kilo-code.initializeProjectFiles",
 				"title": "Initialize Project Continuance Files",
 				"category": "%configuration.title%"
+			},
+			{
+				"command": "kilo-code.cancelAutoProceed",
+				"title": "Cancel Auto-Proceed",
+				"category": "%configuration.title%"
 			}
 		],
 		"menus": {

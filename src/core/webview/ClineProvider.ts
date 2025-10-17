@@ -174,6 +174,9 @@ export class ClineProvider
 	public errorTrackingService?: ErrorTrackingService
 	public projectCompletionService?: ProjectCompletionService
 	private autoProceedTimer?: NodeJS.Timeout
+	private autoProceedCountdownInterval?: NodeJS.Timeout
+	private autoProceedStatusBarItem?: vscode.StatusBarItem
+	private autoProceedStartTime?: number
 	private autoProceedEnabled: boolean = false
 	private autoProceedDelayMs: number = 300000
 
@@ -287,6 +290,9 @@ export class ClineProvider
 			const onTaskInteractiveState = (taskId: string) => {
 				// Check if the last message is command_output ask
 				const lastMessage = instance.clineMessages[instance.clineMessages.length - 1]
+				this.log(
+					`[AutoProceed] TaskInteractive event - enabled: ${this.autoProceedEnabled}, lastMessage type: ${lastMessage?.type}, ask: ${lastMessage?.ask}`,
+				)
 				if (lastMessage && lastMessage.type === "ask" && lastMessage.ask === "command_output") {
 					this.log("[AutoProceed] Detected 'Proceed While Running' button, starting timer")
 					this.startAutoProceedTimer(instance)
@@ -469,23 +475,26 @@ export class ClineProvider
 				this.createIdleStatusBar()
 			}
 
-			// Listen for idle state
-			this.idleDetectionService.on("idle", () => {
+			// Listen for idle state - this is the main trigger for automatic continuation
+			this.idleDetectionService.on("idle", async () => {
 				this.log("[IdleDetection] Idle state detected")
-			})
 
-			// Listen for auto-prompt ready
-			this.idleDetectionService.on("autoPromptReady", async (prompt: string) => {
-				this.log("[IdleDetection] Auto-prompt ready")
 				try {
 					// kilocode_change start: Check if automatic project continuance is enabled
 					const autoContinueEnabled = this.getGlobalState("idleAutoContinueProject") ?? false
 					const projectContinuanceEnabled = this.projectContinuanceService?.config?.enabled ?? false
+
+					// If auto-continue is not enabled, do nothing
+					if (!autoContinueEnabled || !projectContinuanceEnabled) {
+						this.log("[IdleDetection] Automatic project continuance is disabled")
+						return
+					}
+
 					const continueInCurrentTask = this.getGlobalState("idleContinueInCurrentTask") ?? true
 
 					// Check if project completion validation is enabled and should stop continuance
 					const projectCompletionEnabled = this.projectCompletionService?.config?.enabled ?? false
-					if (autoContinueEnabled && projectContinuanceEnabled && projectCompletionEnabled) {
+					if (projectCompletionEnabled) {
 						this.log("[ProjectCompletion] Checking if project is complete before continuing...")
 						const shouldStop = await this.projectCompletionService?.shouldStopContinuance()
 						if (shouldStop) {
@@ -505,46 +514,63 @@ export class ClineProvider
 						}
 					}
 
-					// Determine which prompt to use
-					let messageToSend = prompt
-					if (autoContinueEnabled && projectContinuanceEnabled) {
-						this.log(
-							"[ProjectContinuance] Automatic project continuance enabled, using intelligent continuation",
-						)
-						const continuationPrompt = await this.projectContinuanceService?.generateContinuationPrompt()
-						if (continuationPrompt) {
-							messageToSend = continuationPrompt
-						} else {
-							this.log(
-								"[ProjectContinuance] No continuation prompt generated, falling back to auto-prompt",
-							)
-						}
-					} else {
-						if (!autoContinueEnabled) {
-							this.log("[ProjectContinuance] Automatic project continuance is disabled in settings")
-						}
-						if (!projectContinuanceEnabled) {
-							this.log("[ProjectContinuance] Project continuance feature is not enabled")
-						}
+					// Generate continuation prompt
+					this.log(
+						"[ProjectContinuance] Automatic project continuance enabled, generating intelligent continuation",
+					)
+					const continuationPrompt = await this.projectContinuanceService?.generateContinuationPrompt()
+					if (!continuationPrompt) {
+						this.log("[ProjectContinuance] No continuation prompt generated, waiting for auto-prompt files")
+						return // Wait for autoPromptReady event if there are files
 					}
 
-					// Send the message - either to current task or as new task
+					// Send the continuation prompt
 					if (continueInCurrentTask) {
+						this.log("[IdleDetection] Creating new task (will reload context)")
+						await this.createTask(continuationPrompt)
+					} else {
+						this.log("[IdleDetection] Continuing in current task (preserving context)")
 						const currentTask = this.getCurrentTask()
 						if (currentTask) {
-							this.log("[IdleDetection] Continuing in current task (preserving context)")
-							currentTask.handleWebviewAskResponse("messageResponse", messageToSend, [])
+							currentTask.handleWebviewAskResponse("messageResponse", continuationPrompt, [])
 						} else {
 							this.log(
-								"[IdleDetection] No current task found, creating new task despite continueInCurrentTask=true",
+								"[IdleDetection] No current task found, creating new task despite continueInCurrentTask=false",
 							)
-							await this.createTask(messageToSend)
+							await this.createTask(continuationPrompt)
 						}
-					} else {
-						this.log("[IdleDetection] Creating new task (will reload context)")
-						await this.createTask(messageToSend)
 					}
 					// kilocode_change end
+				} catch (error) {
+					this.log(
+						`[IdleDetection] Error during automatic continuation: ${error instanceof Error ? error.message : String(error)}`,
+					)
+				}
+			})
+
+			// Listen for auto-prompt ready - used when there are .txt files in the auto-prompt folder
+			this.idleDetectionService.on("autoPromptReady", async (prompt: string) => {
+				this.log("[IdleDetection] Auto-prompt ready with files from folder")
+				try {
+					const continueInCurrentTask = this.getGlobalState("idleContinueInCurrentTask") ?? true
+
+					// Use the auto-prompt files content (takes priority over generated continuation)
+					// Send the message - either to current task or as new task
+					if (continueInCurrentTask) {
+						this.log("[IdleDetection] Creating new task with auto-prompt content")
+						await this.createTask(prompt)
+					} else {
+						this.log("[IdleDetection] Continuing in current task with auto-prompt content")
+						const currentTask = this.getCurrentTask()
+						if (currentTask) {
+							currentTask.handleWebviewAskResponse("messageResponse", prompt, [])
+						} else {
+							this.log(
+								"[IdleDetection] No current task found, creating new task despite continueInCurrentTask=false",
+							)
+							await this.createTask(prompt)
+						}
+					}
 				} catch (error) {
 					this.log(
 						`[IdleDetection] Error sending auto-prompt: ${error instanceof Error ? error.message : String(error)}`,
@@ -984,7 +1010,12 @@ export class ClineProvider
 		// Clear any existing timer first
 		this.clearAutoProceedTimer()
 
+		this.log(
+			`[AutoProceed] startAutoProceedTimer called - enabled: ${this.autoProceedEnabled}, task: ${task ? "exists" : "null"}`,
+		)
+
 		if (!this.autoProceedEnabled || !task) {
+			this.log(`[AutoProceed] Timer NOT started - enabled: ${this.autoProceedEnabled}, task exists: ${!!task}`)
 			return
 		}
 
@@ -992,6 +1023,20 @@ export class ClineProvider
 			`[AutoProceed] Starting timer for ${this.autoProceedDelayMs}ms before auto-clicking 'Proceed While Running'`,
 		)
 
+		// Record start time for countdown
+		this.autoProceedStartTime = Date.now()
+
+		// Create status bar if it doesn't exist
+		this.createAutoProceedStatusBar()
+		this.log(`[AutoProceed] Status bar created/retrieved`)
+
+		// Start countdown interval (update every second)
+		this.autoProceedCountdownInterval = setInterval(() => {
+			this.updateAutoProceedStatusBar()
+		}, 1000)
+		this.log(`[AutoProceed] Countdown interval started`)
+
+		// Set main timer for auto-proceed
 		this.autoProceedTimer = setTimeout(() => {
 			this.log("[AutoProceed] Delay expired, automatically proceeding with command execution")
 			task.handleTerminalOperation("continue").catch((error) => {
@@ -999,8 +1044,13 @@ export class ClineProvider
 					`[AutoProceed] Error auto-proceeding: ${error instanceof Error ? error.message : String(error)}`,
 				)
 			})
-			this.autoProceedTimer = undefined
+			this.clearAutoProceedTimer()
 		}, this.autoProceedDelayMs)
+		this.log(`[AutoProceed] Main timer set for ${this.autoProceedDelayMs}ms`)
+
+		// Update status bar immediately
+		this.updateAutoProceedStatusBar()
+		this.log(`[AutoProceed] Status bar updated immediately`)
 	}
 
 	/**
@@ -1011,6 +1061,18 @@ export class ClineProvider
 			clearTimeout(this.autoProceedTimer)
 			this.autoProceedTimer = undefined
 			this.log("[AutoProceed] Timer cleared")
+		}
+
+		if (this.autoProceedCountdownInterval) {
+			clearInterval(this.autoProceedCountdownInterval)
+			this.autoProceedCountdownInterval = undefined
+		}
+
+		this.autoProceedStartTime = undefined
+
+		// Hide status bar
+		if (this.autoProceedStatusBarItem) {
+			this.autoProceedStatusBarItem.hide()
 		}
 	}
 
@@ -1083,6 +1145,54 @@ export class ClineProvider
 				this.idleStatusBarItem.backgroundColor = undefined
 				this.idleStatusBarItem.color = new vscode.ThemeColor("statusBarItem.errorForeground")
 				break
+		}
+	}
+
+	/**
+	 * Creates the status bar item for auto-proceed countdown
+	 */
+	private createAutoProceedStatusBar() {
+		if (this.autoProceedStatusBarItem) {
+			return // Already created
+		}
+
+		// Create status bar next to idle detection (priority 99, one less than idle at 100)
+		this.autoProceedStatusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99)
+		this.autoProceedStatusBarItem.tooltip = "Auto-Proceed Countdown - Click to cancel"
+		this.autoProceedStatusBarItem.command = "kilo-code.cancelAutoProceed"
+		this.disposables.push(this.autoProceedStatusBarItem)
+		this.log("[AutoProceed] Status bar created")
+	}
+
+	/**
+	 * Updates the auto-proceed status bar with countdown
+	 */
+	private updateAutoProceedStatusBar() {
+		this.log(
+			`[AutoProceed] updateAutoProceedStatusBar - statusBar: ${this.autoProceedStatusBarItem ? "exists" : "null"}, startTime: ${this.autoProceedStartTime ? "exists" : "null"}`,
+		)
+
+		if (!this.autoProceedStatusBarItem || !this.autoProceedStartTime) {
+			this.log("[AutoProceed] Cannot update status bar - missing statusBar or startTime")
+			return
+		}
+
+		const elapsed = Date.now() - this.autoProceedStartTime
+		const remaining = Math.max(0, this.autoProceedDelayMs - elapsed)
+		const secondsRemaining = Math.ceil(remaining / 1000)
+
+		this.log(`[AutoProceed] Countdown: ${secondsRemaining}s remaining`)
+
+		if (secondsRemaining > 0) {
+			this.autoProceedStatusBarItem.text = `$(debug-continue) Auto-Proceed: ${secondsRemaining}s`
+			this.autoProceedStatusBarItem.backgroundColor = new vscode.ThemeColor("statusBarItem.prominentBackground")
+			this.autoProceedStatusBarItem.color = new vscode.ThemeColor("statusBarItem.prominentForeground")
+			this.autoProceedStatusBarItem.show()
+			this.log(`[AutoProceed] Status bar showing: ${secondsRemaining}s`)
+		} else {
+			// Countdown finished, hide the status bar
+			this.autoProceedStatusBarItem.hide()
+			this.log("[AutoProceed] Countdown finished, hiding status bar")
 		}
 	}
 
@@ -1188,14 +1298,19 @@ export class ClineProvider
 
 		// Check if stack is now empty (Start New Task button visible)
 		if (this.clineStack.length === 0) {
-			this.idleDetectionService?.notifyButtonVisible()
-			// kilocode_change start: Trigger auto-commit when task completes
-			this.autoGitService?.handleTaskComplete().catch((error) => {
+			// kilocode_change start: Trigger auto-commit when task completes (BEFORE idle detection)
+			// This ensures git commit/push completes before project continuance starts
+			try {
+				await this.autoGitService?.handleTaskComplete()
+			} catch (error) {
 				this.log(
 					`[AutoGit] Error during auto-commit: ${error instanceof Error ? error.message : String(error)}`,
 				)
-			})
+			}
 			// kilocode_change end
+
+			// Notify idle detection AFTER auto-commit completes
+			this.idleDetectionService?.notifyButtonVisible()
 		}
 	}
 
