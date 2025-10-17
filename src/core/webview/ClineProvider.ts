@@ -549,12 +549,27 @@ export class ClineProvider
 			})
 
 			// Listen for auto-prompt ready - used when there are .txt files in the auto-prompt folder
+			// Listen for auto-prompt ready - used when there are .txt files in the auto-prompt folder
 			this.idleDetectionService.on("autoPromptReady", async (prompt: string) => {
 				this.log("[IdleDetection] Auto-prompt ready with files from folder")
 				try {
+					// Check if automatic project continuance is enabled
+					const autoContinueEnabled = this.getGlobalState("idleAutoContinueProject") ?? false
+					const projectContinuanceEnabled = this.projectContinuanceService?.config?.enabled ?? false
 					const continueInCurrentTask = this.getGlobalState("idleContinueInCurrentTask") ?? true
 
-					// Use the auto-prompt files content (takes priority over generated continuation)
+					// If automatic continuation is enabled, use intelligent continuation instead of file content
+					if (autoContinueEnabled && projectContinuanceEnabled) {
+						this.log(
+							"[IdleDetection] Automatic continuation is enabled, using intelligent prompt instead of file content",
+						)
+						// The intelligent continuation already happened in the "idle" event
+						// Skip processing the file-based prompt
+						return
+					}
+
+					// Use the auto-prompt files content (only when automatic continuation is disabled)
+					this.log("[IdleDetection] Using auto-prompt file content (automatic continuation is disabled)")
 					// Send the message - either to current task or as new task
 					if (continueInCurrentTask) {
 						this.log("[IdleDetection] Creating new task with auto-prompt content")
