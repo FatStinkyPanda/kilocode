@@ -540,6 +540,8 @@ export class ClineProvider
 						this.log("[IdleDetection] Continuing in current task (preserving context)")
 						const currentTask = this.getCurrentTask()
 						if (currentTask) {
+							// Reset idle state before sending message so it can be detected again
+							this.idleDetectionService?.notifyTaskStarted()
 							currentTask.handleWebviewAskResponse("messageResponse", continuationPrompt, [])
 						} else {
 							this.log(
@@ -586,6 +588,8 @@ export class ClineProvider
 						this.log("[IdleDetection] Continuing in current task with auto-prompt content")
 						const currentTask = this.getCurrentTask()
 						if (currentTask) {
+							// Reset idle state before sending message so it can be detected again
+							this.idleDetectionService?.notifyTaskStarted()
 							currentTask.handleWebviewAskResponse("messageResponse", prompt, [])
 						} else {
 							this.log(
