@@ -526,19 +526,19 @@ export class ClineProvider
 
 					// Send the continuation prompt
 					if (continueInCurrentTask) {
-						this.log("[IdleDetection] Creating new task (will reload context)")
-						await this.createTask(continuationPrompt)
-					} else {
 						this.log("[IdleDetection] Continuing in current task (preserving context)")
 						const currentTask = this.getCurrentTask()
 						if (currentTask) {
 							currentTask.handleWebviewAskResponse("messageResponse", continuationPrompt, [])
 						} else {
 							this.log(
-								"[IdleDetection] No current task found, creating new task despite continueInCurrentTask=false",
+								"[IdleDetection] No current task found, creating new task despite continueInCurrentTask=true",
 							)
 							await this.createTask(continuationPrompt)
 						}
+					} else {
+						this.log("[IdleDetection] Creating new task (will reload context)")
+						await this.createTask(continuationPrompt)
 					}
 					// kilocode_change end
 				} catch (error) {
@@ -572,19 +572,19 @@ export class ClineProvider
 					this.log("[IdleDetection] Using auto-prompt file content (automatic continuation is disabled)")
 					// Send the message - either to current task or as new task
 					if (continueInCurrentTask) {
-						this.log("[IdleDetection] Creating new task with auto-prompt content")
-						await this.createTask(prompt)
-					} else {
 						this.log("[IdleDetection] Continuing in current task with auto-prompt content")
 						const currentTask = this.getCurrentTask()
 						if (currentTask) {
 							currentTask.handleWebviewAskResponse("messageResponse", prompt, [])
 						} else {
 							this.log(
-								"[IdleDetection] No current task found, creating new task despite continueInCurrentTask=false",
+								"[IdleDetection] No current task found, creating new task despite continueInCurrentTask=true",
 							)
 							await this.createTask(prompt)
 						}
+					} else {
+						this.log("[IdleDetection] Creating new task with auto-prompt content")
+						await this.createTask(prompt)
 					}
 				} catch (error) {
 					this.log(
