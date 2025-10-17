@@ -480,6 +480,17 @@ export class ClineProvider
 				this.log("[IdleDetection] Idle state detected")
 
 				try {
+					// kilocode_change start: Auto-commit when idle (BEFORE checking continuance)
+					// This ensures changes are committed after each work cycle
+					try {
+						await this.autoGitService?.handleTaskComplete()
+					} catch (error) {
+						this.log(
+							`[AutoGit] Error during auto-commit on idle: ${error instanceof Error ? error.message : String(error)}`,
+						)
+					}
+					// kilocode_change end
+
 					// kilocode_change start: Check if automatic project continuance is enabled
 					const autoContinueEnabled = this.getGlobalState("idleAutoContinueProject") ?? false
 					const projectContinuanceEnabled = this.projectContinuanceService?.config?.enabled ?? false
